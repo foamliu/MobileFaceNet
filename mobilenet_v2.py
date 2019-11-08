@@ -2,8 +2,9 @@ import torch
 from torch import nn
 from torch.quantization import QuantStub, DeQuantStub
 from torchsummary import summary
+
+from config import device
 from silu import SiLU
-from config import device, emb_size
 
 
 def _make_divisible(v, divisor, min_value=None):
@@ -68,6 +69,18 @@ class InvertedResidual(nn.Module):
             return self.conv(x)
 
 
+class depthwise_separable_conv(nn.Module):
+    def __init__(self, nin, nout, kernel_size, padding, bias=False):
+        super(depthwise_separable_conv, self).__init__()
+        self.depthwise = nn.Conv2d(nin, nin, kernel_size=kernel_size, padding=padding, groups=nin, bias=bias)
+        self.pointwise = nn.Conv2d(nin, nout, kernel_size=1, bias=bias)
+
+    def forward(self, x):
+        out = self.depthwise(x)
+        out = self.pointwise(out)
+        return out
+
+
 class MobileNetV2(nn.Module):
     def __init__(self, width_mult=1.0, inverted_residual_setting=None, round_nearest=8):
         """
@@ -106,6 +119,7 @@ class MobileNetV2(nn.Module):
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
         features = [ConvBNReLU(3, input_channel, stride=1)]
+        features.append(depthwise_separable_conv(nin=64, nout=64, kernel_size=3, padding=0))
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
@@ -115,7 +129,7 @@ class MobileNetV2(nn.Module):
                 input_channel = output_channel
         # building last several layers
         features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
-        features.append(nn.Conv2d(emb_size, emb_size, kernel_size=7, stride=1, padding=0, groups=emb_size, bias=False))
+        features.append(depthwise_separable_conv(nin=512, nout=512, kernel_size=7, padding=0))
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
         self.quant = QuantStub()
