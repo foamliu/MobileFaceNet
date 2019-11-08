@@ -19,7 +19,6 @@ class ArcFaceDataset(Dataset):
         sample = self.samples[i]
         filename = sample['img']
         filename = os.path.join(IMG_DIR, filename)
-        print(filename)
         img = cv.imread(filename)  # BGR
         img = (img - 127.5) / 128.
 
