@@ -65,7 +65,9 @@ def get_image(samples, file):
     full_path = sample['full_path']
     landmarks = sample['landmarks']
     img = align_face(full_path, landmarks)  # BGR
-    img = (img - 127.5) / 128.
+    img = ((img - 127.5) / 128.)
+    img = np.transpose(img, (2, 0, 1))  # HxWxC array to CxHxW
+    img = torch.FloatTensor(img)
     img = img.to(device)
     return img
 
