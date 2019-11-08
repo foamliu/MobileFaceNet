@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.quantization import QuantStub, DeQuantStub
 from torchsummary import summary
-
+from silu import SiLU
 from config import device, emb_size
 
 
@@ -33,7 +33,7 @@ class ConvBNReLU(nn.Sequential):
             nn.Conv2d(in_planes, out_planes, kernel_size, stride, padding, groups=groups, bias=False),
             nn.BatchNorm2d(out_planes, momentum=0.1),
             # Replace with ReLU
-            nn.ReLU(inplace=False)
+            SiLU()
         )
 
 
@@ -105,7 +105,7 @@ class MobileNetV2(nn.Module):
         # building first layer
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
-        features = [ConvBNReLU(3, input_channel, stride=2)]
+        features = [ConvBNReLU(3, input_channel, stride=1)]
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
