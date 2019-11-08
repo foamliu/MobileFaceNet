@@ -21,7 +21,7 @@ class ArcFaceDataset(Dataset):
         filename = sample['img']
         filename = os.path.join(IMG_DIR, filename)
         img = cv.imread(filename)  # BGR
-        img = (img - 127.5) / 128.
+        img = ((img - 127.5) / 128.).astype(np.float32)
         img = np.transpose(img, (2, 0, 1))  # HxWxC array to CxHxW
 
         label = sample['label']
