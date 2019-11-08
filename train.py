@@ -1,4 +1,3 @@
-import math
 import os
 from shutil import copyfile
 
@@ -13,7 +12,7 @@ from data_gen import ArcFaceDataset
 from focal_loss import FocalLoss
 from lfw_eval import lfw_test
 from mobilenet_v2 import MobileNetV2
-from models import resnet18, resnet34, resnet50, resnet101, resnet152, ArcMarginModel
+from models import ArcMarginModel
 from utils import parse_args, save_checkpoint, AverageMeter, clip_gradient, accuracy, get_logger
 
 
@@ -38,22 +37,7 @@ def train_net(args):
 
     # Initialize / load checkpoint
     if checkpoint is None:
-        if args.network == 'r18':
-            model = resnet18(args)
-        elif args.network == 'r34':
-            model = resnet34(args)
-        elif args.network == 'r50':
-            model = resnet50(args)
-        elif args.network == 'r101':
-            model = resnet101(args)
-        elif args.network == 'r152':
-            model = resnet152(args)
-        elif args.network == 'mobile':
-            model = MobileNetV2()
-        else:
-            raise TypeError('network {} is not supported.'.format(args.network))
-
-        # print(model)
+        model = MobileNetV2()
         model = nn.DataParallel(model)
         metric_fc = ArcMarginModel(args)
         metric_fc = nn.DataParallel(metric_fc)
@@ -144,11 +128,6 @@ def train(train_loader, model, metric_fc, criterion, optimizer, epoch, logger):
 
         # Calculate loss
         loss = criterion(output, label)
-
-        # try:
-        #     assert (not math.isnan(loss.item()))
-        # except AssertionError:
-        #     continue
 
         # Back prop.
         optimizer.zero_grad()
