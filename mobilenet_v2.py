@@ -122,7 +122,8 @@ class MobileNetV2(nn.Module):
         # building classifier
         self.embedder = nn.Sequential(
             nn.Dropout(0.2),
-            nn.Linear(self.last_channel, emb_size),
+            # nn.Linear(self.last_channel, emb_size),
+            nn.Conv2d(512, 512, 7, 1, 0, groups=512, bias=False),
             nn.BatchNorm1d(512)
         )
 
