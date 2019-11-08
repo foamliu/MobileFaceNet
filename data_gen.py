@@ -2,6 +2,7 @@ import os
 import pickle
 
 import cv2 as cv
+import numpy as np
 from torch.utils.data import Dataset
 
 from config import IMG_DIR, pickle_file
@@ -21,6 +22,7 @@ class ArcFaceDataset(Dataset):
         filename = os.path.join(IMG_DIR, filename)
         img = cv.imread(filename)  # BGR
         img = (img - 127.5) / 128.
+        img = np.transpose(img, (2, 0, 1))  # HxWxC array to CxHxW
 
         label = sample['label']
 
