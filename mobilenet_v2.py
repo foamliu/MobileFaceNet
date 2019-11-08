@@ -146,7 +146,7 @@ class MobileNetV2(nn.Module):
 
         x = self.features(x)
         x = x.mean([2, 3])
-        x = self.embedder(x)
+        # x = self.embedder(x)
         x = self.dequant(x)
         return x
 
