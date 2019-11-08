@@ -115,7 +115,7 @@ class MobileNetV2(nn.Module):
                 input_channel = output_channel
         # building last several layers
         features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
-        features.append(nn.Conv2d(512, 512, kernel_size=7, stride=1, padding=0, groups=512, bias=False))
+        features.append(nn.Conv2d(emb_size, emb_size, kernel_size=7, stride=1, padding=0, groups=emb_size, bias=False))
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
         self.quant = QuantStub()
@@ -123,8 +123,6 @@ class MobileNetV2(nn.Module):
         # building classifier
         self.embedder = nn.Sequential(
             nn.Dropout(0.2),
-            # nn.Linear(self.last_channel, emb_size),
-            nn.Conv2d(512, 512, 7, 1, 0, groups=512, bias=False),
             nn.BatchNorm1d(512)
         )
 
