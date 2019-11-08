@@ -2,13 +2,13 @@
 
 ![apm](https://img.shields.io/apm/l/vim-mode.svg)
 
-PyTorch implementation of Additive Angular Margin Loss for Deep Face Recognition.
-[paper](https://arxiv.org/pdf/1801.07698.pdf).
+PyTorch implementation of MobileFaceNets: Efficient CNNs for Accurate Real-Time Face Verification on Mobile Devices.
+[paper](https://arxiv.org/abs/1804.07573).
 ```
 @article{deng2018arcface,
-title={ArcFace: Additive Angular Margin Loss for Deep Face Recognition},
-author={Deng, Jiankang and Guo, Jia and Niannan, Xue and Zafeiriou, Stefanos},
-journal={arXiv:1801.07698},
+title={MobileFaceNets: Efficient CNNs for Accurate Real-Time Face Verification on Mobile Devices},
+author={Sheng Chen, Yang Liu, Xiang Gao, Zhen Han},
+journal={arXiv:1804.07573},
 year={2018}
 }
 ```
