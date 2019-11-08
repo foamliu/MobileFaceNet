@@ -4,8 +4,7 @@ import pickle
 import cv2 as cv
 from torch.utils.data import Dataset
 
-from config import IMG_DIR
-from config import pickle_file
+from config import IMG_DIR, pickle_file
 
 
 class ArcFaceDataset(Dataset):
@@ -19,12 +18,12 @@ class ArcFaceDataset(Dataset):
     def __getitem__(self, i):
         sample = self.samples[i]
         filename = sample['img']
-        label = sample['label']
-
         filename = os.path.join(IMG_DIR, filename)
-        filename = os.path.join(IMG_DIR, filename)
+        print(filename)
         img = cv.imread(filename)  # BGR
         img = (img - 127.5) / 128.
+
+        label = sample['label']
 
         return img, label
 
