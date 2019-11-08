@@ -94,7 +94,6 @@ class MobileNetV2(nn.Module):
                 [2, 128, 6, 1],
                 [4, 128, 1, 2],
                 [2, 128, 2, 1],
-                [6, 320, 1, 1],
             ]
 
         # only check the first element, assuming user knows t,c,n,s are required
