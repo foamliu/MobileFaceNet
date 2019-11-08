@@ -4,7 +4,6 @@ from torch.quantization import QuantStub, DeQuantStub
 from torchsummary import summary
 
 from config import device
-from silu import SiLU
 
 
 def _make_divisible(v, divisor, min_value=None):
@@ -33,8 +32,7 @@ class ConvBNReLU(nn.Sequential):
         super(ConvBNReLU, self).__init__(
             nn.Conv2d(in_planes, out_planes, kernel_size, stride, padding, groups=groups, bias=False),
             nn.BatchNorm2d(out_planes, momentum=0.1),
-            # Replace with ReLU
-            SiLU()
+            nn.ReLU()
         )
 
 
