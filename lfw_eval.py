@@ -8,13 +8,11 @@ import cv2 as cv
 import numpy as np
 import scipy.stats
 import torch
-from PIL import Image
 from matplotlib import pyplot as plt
 from tqdm import tqdm
-from mobilenet_v2 import MobileNetV2
+
 from config import device
-from data_gen import data_transforms
-from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, blur_and_grayscale
+from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes
 
 angles_file = 'data/angles.txt'
 lfw_pickle = 'data/lfw_funneled.pkl'
@@ -60,17 +58,14 @@ def process():
         pickle.dump(save, file, pickle.HIGHEST_PROTOCOL)
 
 
-def get_image(samples, transformer, file):
+def get_image(samples, file):
     filtered = [sample for sample in samples if file in sample['full_path'].replace('\\', '/')]
     assert (len(filtered) == 1), 'len(filtered): {} file:{}'.format(len(filtered), file)
     sample = filtered[0]
     full_path = sample['full_path']
     landmarks = sample['landmarks']
     img = align_face(full_path, landmarks)  # BGR
-    # img = blur_and_grayscale(img)
-    img = img[..., ::-1]  # RGB
-    img = Image.fromarray(img, 'RGB')  # RGB
-    img = transformer(img)
+    img = (img - 127.5) / 128.
     img = img.to(device)
     return img
 
@@ -87,8 +82,6 @@ def evaluate(model):
     with open(filename, 'r') as file:
         lines = file.readlines()
 
-    transformer = data_transforms['val']
-
     angles = []
 
     start = time.time()
@@ -96,9 +89,9 @@ def evaluate(model):
         for line in tqdm(lines):
             tokens = line.split()
             file0 = tokens[0]
-            img0 = get_image(samples, transformer, file0)
+            img0 = get_image(samples, file0)
             file1 = tokens[1]
-            img1 = get_image(samples, transformer, file1)
+            img1 = get_image(samples, file1)
             imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float, device=device)
             imgs[0] = img0
             imgs[1] = img1
