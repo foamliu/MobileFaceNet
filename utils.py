@@ -3,6 +3,7 @@ import logging
 import math
 
 import cv2 as cv
+import numpy as np
 import torch
 from PIL import Image
 
@@ -79,34 +80,6 @@ def accuracy(scores, targets, k=1):
     correct = ind.eq(targets.view(-1, 1).expand_as(ind))
     correct_total = correct.view(-1).float().sum()  # 0D tensor
     return correct_total.item() * (100.0 / batch_size)
-
-
-import numpy as np
-from imgaug import augmenters as iaa
-
-# Define our sequence of augmentation steps that will be applied to every image.
-seq = iaa.Sequential(
-    [
-        iaa.GaussianBlur(sigma=3.0)
-    ]
-)
-
-
-def image_aug(src):
-    src = np.expand_dims(src, axis=0)
-    augs = seq.augment_images(src)
-    aug = augs[0]
-    return aug
-
-
-def blur_and_grayscale(img):
-    img = image_aug(img)
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    img2 = np.zeros_like(img)
-    img2[:, :, 0] = gray
-    img2[:, :, 1] = gray
-    img2[:, :, 2] = gray
-    return img2
 
 
 def align_face(img_fn, facial5points):
@@ -215,7 +188,6 @@ def parse_args():
     parser.add_argument('--easy-margin', type=bool, default=False, help='easy margin')
     parser.add_argument('--focal-loss', type=bool, default=False, help='focal loss')
     parser.add_argument('--gamma', type=float, default=2.0, help='focusing parameter gamma')
-    parser.add_argument('--use-se', type=bool, default=False, help='use SEBlock')
     parser.add_argument('--full-log', type=bool, default=False, help='full logging')
     parser.add_argument('--checkpoint', type=str, default=None, help='checkpoint')
     args = parser.parse_args()
