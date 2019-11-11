@@ -56,6 +56,7 @@ def train_net(args):
         model = checkpoint['model']
         metric_fc = checkpoint['metric_fc']
         optimizer = checkpoint['optimizer']
+        print(optimizer.param_groups[0]['lr'])
 
     logger = get_logger()
 
@@ -77,6 +78,7 @@ def train_net(args):
 
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
+        print(optimizer.param_groups[0]['lr'])
         # One epoch's training
         train_loss, train_acc = train(train_loader=train_loader,
                                       model=model,
