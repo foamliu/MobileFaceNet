@@ -1,6 +1,3 @@
-import os
-from shutil import copyfile
-
 import numpy as np
 import torch
 from torch import nn
@@ -14,16 +11,6 @@ from lfw_eval import lfw_test
 from mobilenet_v2 import MobileNetV2
 from models import ArcMarginModel
 from utils import parse_args, save_checkpoint, AverageMeter, clip_gradient, accuracy, get_logger
-
-
-def full_log(epoch):
-    full_log_dir = 'data/full_log'
-    if not os.path.isdir(full_log_dir):
-        os.mkdir(full_log_dir)
-    filename = 'angles_{}.txt'.format(epoch)
-    dst_file = os.path.join(full_log_dir, filename)
-    src_file = 'data/angles.txt'
-    copyfile(src_file, dst_file)
 
 
 def train_net(args):
@@ -56,7 +43,6 @@ def train_net(args):
         model = checkpoint['model']
         metric_fc = checkpoint['metric_fc']
         optimizer = checkpoint['optimizer']
-        print(optimizer.param_groups[0]['lr'])
 
     logger = get_logger()
 
@@ -78,9 +64,8 @@ def train_net(args):
 
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
-        print(optimizer.param_groups[0]['lr'])
         scheduler.step(epoch)
-        print(optimizer.param_groups[0]['lr'])
+
         # One epoch's training
         train_loss, train_acc = train(train_loader=train_loader,
                                       model=model,
@@ -109,8 +94,6 @@ def train_net(args):
 
         # Save checkpoint
         save_checkpoint(epoch, epochs_since_improvement, model, metric_fc, optimizer, best_acc, is_best)
-
-
 
 
 def train(train_loader, model, metric_fc, criterion, optimizer, epoch, logger):
