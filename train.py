@@ -79,6 +79,8 @@ def train_net(args):
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
         print(optimizer.param_groups[0]['lr'])
+        scheduler.step(epoch)
+        print(optimizer.param_groups[0]['lr'])
         # One epoch's training
         train_loss, train_acc = train(train_loader=train_loader,
                                       model=model,
@@ -108,7 +110,7 @@ def train_net(args):
         # Save checkpoint
         save_checkpoint(epoch, epochs_since_improvement, model, metric_fc, optimizer, best_acc, is_best)
 
-        scheduler.step(epoch)
+
 
 
 def train(train_loader, model, metric_fc, criterion, optimizer, epoch, logger):
