@@ -11,7 +11,6 @@ import torch
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-from config import device
 from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes
 
 angles_file = 'data/angles.txt'
@@ -68,7 +67,6 @@ def get_image(samples, file):
     img = ((img - 127.5) / 128.)
     img = np.transpose(img, (2, 0, 1))  # HxWxC array to CxHxW
     img = torch.FloatTensor(img)
-    img = img.to(device)
     return img
 
 
@@ -94,7 +92,7 @@ def evaluate(model):
             img0 = get_image(samples, file0)
             file1 = tokens[1]
             img1 = get_image(samples, file1)
-            imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float, device=device)
+            imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float)
             imgs[0] = img0
             imgs[1] = img1
 
@@ -114,7 +112,7 @@ def evaluate(model):
             is_same = tokens[2]
             angles.append('{} {}\n'.format(theta, is_same))
 
-    print('elapsed: {} ms/image'.format(elapsed / (6000 * 2) * 1000))
+    print('elapsed: {} ms'.format(elapsed / (6000 * 2) * 1000))
 
     with open('data/angles.txt', 'w') as file:
         file.writelines(angles)
@@ -163,7 +161,7 @@ def visualize(threshold):
     plt.legend(loc='upper right')
     plt.plot([threshold, threshold], [0, 0.05], 'k-', lw=2)
     plt.savefig('images/theta_dist.png')
-    plt.show()
+    # plt.show()
 
 
 def accuracy(threshold):
