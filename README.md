@@ -1,11 +1,10 @@
-# InsightFace
+# MobileFaceNets
 
 ![apm](https://img.shields.io/apm/l/vim-mode.svg)
 
 PyTorch implementation of MobileFaceNets: Efficient CNNs for Accurate Real-Time Face Verification on Mobile Devices.
 [paper](https://arxiv.org/abs/1804.07573).
 
-```
 ## Dataset
 
 Function|Dataset|
@@ -18,7 +17,6 @@ Function|Dataset|
 ### Introduction
 
 MS-Celeb-1M dataset for training, 3,804,846 faces over 85,164 identities.
-
 
 ## Dependencies
 - Python 3.6.8
@@ -173,6 +171,6 @@ Making gallery!
 Done Making Gallery!
 Allocating ranks (972393)
 
-Rank 1: 0.964733
+Rank 1: TBD
 </pre>
 
