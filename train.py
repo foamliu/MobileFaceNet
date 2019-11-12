@@ -26,7 +26,9 @@ def train_net(args):
         model = MobileFaceNet()
 
         if args.pretrained:
-            model.load_state_dict(torch.load('mobilefacenet.pt'))
+            filename = 'mobilefacenet.pt'
+            print('loading pretrained model: {}...'.format(filename))
+            model.load_state_dict(torch.load(filename))
 
         model = nn.DataParallel(model)
         metric_fc = ArcMarginModel(args)
