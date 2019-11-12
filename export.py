@@ -17,7 +17,7 @@ if __name__ == '__main__':
     torch.save(model.state_dict(), filename)
     print('elapsed {} sec'.format(time.time() - start))
 
-    print('saving {}...'.format(filename))
+    print('loading {}...'.format(filename))
     start = time.time()
     model = MobileFaceNet()
     model.load_state_dict(torch.load(filename))
