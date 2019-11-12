@@ -86,7 +86,7 @@ def evaluate(model):
 
     angles = []
 
-    start = time.time()
+    elapsed = 0
     with torch.no_grad():
         for line in tqdm(lines):
             tokens = line.split()
@@ -98,7 +98,10 @@ def evaluate(model):
             imgs[0] = img0
             imgs[1] = img1
 
+            start = time.time()
             output = model(imgs)
+            end = time.time()
+            elapsed += end - start
 
             feature0 = output[0].cpu().numpy()
             feature1 = output[1].cpu().numpy()
@@ -111,8 +114,7 @@ def evaluate(model):
             is_same = tokens[2]
             angles.append('{} {}\n'.format(theta, is_same))
 
-    elapsed_time = time.time() - start
-    print('elapsed time(sec) per image: {}'.format(elapsed_time / (6000 * 2)))
+    print('elapsed: {} ms/image'.format(elapsed / (6000 * 2) * 1000))
 
     with open('data/angles.txt', 'w') as file:
         file.writelines(angles)
@@ -318,10 +320,15 @@ def lfw_test(model):
 
 
 if __name__ == "__main__":
-    checkpoint = 'BEST_checkpoint.tar'
-    checkpoint = torch.load(checkpoint)
-    model = checkpoint['model'].module
-    model = model.to(device)
+    # checkpoint = 'BEST_checkpoint.tar'
+    # checkpoint = torch.load(checkpoint)
+    # model = checkpoint['model'].module
+    # model = model.to(device)
+    # model.eval()
+
+    scripted_model_file = 'mobilefacenet_scripted.pt'
+    model = torch.jit.load(scripted_model_file)
+    model = model.to('cpu')
     model.eval()
 
     acc, threshold = lfw_test(model)
