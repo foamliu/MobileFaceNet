@@ -4,13 +4,7 @@
 
 PyTorch implementation of MobileFaceNets: Efficient CNNs for Accurate Real-Time Face Verification on Mobile Devices.
 [paper](https://arxiv.org/abs/1804.07573).
-```
-@article{deng2018arcface,
-title={MobileFaceNets: Efficient CNNs for Accurate Real-Time Face Verification on Mobile Devices},
-author={Sheng Chen, Yang Liu, Xiang Gao, Zhen Han},
-journal={arXiv:1804.07573},
-year={2018}
-}
+
 ```
 ## Dataset
 
@@ -19,6 +13,7 @@ Function|Dataset|
 |Train|MS-Celeb-1M|
 |Test-1|LFW|
 |Test-2|MegaFace|
+
 
 ### Introduction
 
@@ -87,20 +82,10 @@ $ python lfw_eval.py
 ```
 
 #### Results
-Backbones|LFW(%)|Inference speed(*)| 
+Backbones|LFW(%)|Download| 
 |---|---|---|
-|SE-LResNet101E-IR|99.83%|46.63 ms|
-|SE-LResNet50E-IR|99.75%|27.30 ms|
-|SE-LResNet18E-IR|99.65%|17.53 ms|
-
-Note(*): with 1 Nvidia Tesla P100.
-
-#### theta j Distribution
-
-![image](https://github.com/foamliu/InsightFace-v2/raw/master/images/theta_dist.png)
-
-#### Error analysis
-See also [LFW Face Database Errata](http://vis-www.cs.umass.edu/lfw/index.html#errata)
+|paper|99.18%||
+|ours|99.18%|Link|
 
 ##### False Positive
 2 false positives:
@@ -171,15 +156,6 @@ $ python run_experiment.py -p /dev/code/mnt/InsightFace-v2/megaface/devkit/templ
 ```
 
 #### Results
-
-##### Curves
-
-Draw curves with matlab script @ megaface/draw_curve.m. 
-
-CMC|ROC|
-|---|---|
-|![image](https://github.com/foamliu/InsightFace-v2/raw/master/images/megaface_cmc.jpg)|![image](https://github.com/foamliu/InsightFace-v2/raw/master/images/megaface_roc.jpg)|
-|![image](https://github.com/foamliu/InsightFace-v2/raw/master/images/megaface_cmc_2.jpg)|![image](https://github.com/foamliu/InsightFace-v2/raw/master/images/megaface_roc_2.jpg)|
 
 ##### Textual results
 <pre>
