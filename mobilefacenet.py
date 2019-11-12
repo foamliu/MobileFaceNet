@@ -1,9 +1,14 @@
+from torch.quantization import QuantStub, DeQuantStub
+import math
+
 import torch
+import torch.nn.functional as F
 from torch import nn
+from torch.nn import Parameter
 from torch.quantization import QuantStub, DeQuantStub
 from torchsummary import summary
 
-from config import device
+from config import device, num_classes
 
 
 def _make_divisible(v, divisor, min_value=None):
@@ -79,7 +84,7 @@ class depthwise_separable_conv(nn.Module):
         return out
 
 
-class MobileNetV2(nn.Module):
+class MobileFaceNet(nn.Module):
     def __init__(self, width_mult=1.0, inverted_residual_setting=None, round_nearest=8):
         """
         MobileNet V2 main class
@@ -91,7 +96,7 @@ class MobileNetV2(nn.Module):
             round_nearest (int): Round the number of channels in each layer to be a multiple of this number
             Set to 1 to turn off rounding
         """
-        super(MobileNetV2, self).__init__()
+        super(MobileFaceNet, self).__init__()
         block = InvertedResidual
         input_channel = 64
         last_channel = 512
@@ -173,7 +178,40 @@ class MobileNetV2(nn.Module):
                         torch.quantization.fuse_modules(m.conv, [str(idx), str(idx + 1)], inplace=True)
 
 
+class ArcMarginModel(nn.Module):
+    def __init__(self, args):
+        super(ArcMarginModel, self).__init__()
+
+        self.weight = Parameter(torch.FloatTensor(num_classes, args.emb_size))
+        nn.init.xavier_uniform_(self.weight)
+
+        self.easy_margin = args.easy_margin
+        self.m = args.margin_m
+        self.s = args.margin_s
+
+        self.cos_m = math.cos(self.m)
+        self.sin_m = math.sin(self.m)
+        self.th = math.cos(math.pi - self.m)
+        self.mm = math.sin(math.pi - self.m) * self.m
+
+    def forward(self, input, label):
+        x = F.normalize(input)
+        W = F.normalize(self.weight)
+        cosine = F.linear(x, W)
+        sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
+        phi = cosine * self.cos_m - sine * self.sin_m  # cos(theta + m)
+        if self.easy_margin:
+            phi = torch.where(cosine > 0, phi, cosine)
+        else:
+            phi = torch.where(cosine > self.th, phi, cosine - self.mm)
+        one_hot = torch.zeros(cosine.size(), device=device)
+        one_hot.scatter_(1, label.view(-1, 1).long(), 1)
+        output = (one_hot * phi) + ((1.0 - one_hot) * cosine)
+        output *= self.s
+        return output
+
+
 if __name__ == "__main__":
-    model = MobileNetV2().to(device)
+    model = MobileFaceNet().to(device)
     print(model)
     summary(model, input_size=(3, 112, 112))
