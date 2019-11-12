@@ -24,6 +24,10 @@ def train_net(args):
     # Initialize / load checkpoint
     if checkpoint is None:
         model = MobileFaceNet()
+
+        if args.pretrained:
+            model.load_state_dict(torch.load('mobilefacenet.pt'))
+
         model = nn.DataParallel(model)
         metric_fc = ArcMarginModel(args)
         metric_fc = nn.DataParallel(metric_fc)
