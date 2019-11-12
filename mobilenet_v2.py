@@ -84,7 +84,7 @@ class depthwise_separable_conv(nn.Module):
         return out
 
 
-class MobileFaceNet(nn.Module):
+class MobileNetV2(nn.Module):
     def __init__(self, width_mult=1.0, inverted_residual_setting=None, round_nearest=8):
         """
         MobileNet V2 main class
@@ -96,7 +96,7 @@ class MobileFaceNet(nn.Module):
             round_nearest (int): Round the number of channels in each layer to be a multiple of this number
             Set to 1 to turn off rounding
         """
-        super(MobileFaceNet, self).__init__()
+        super(MobileNetV2, self).__init__()
         block = InvertedResidual
         input_channel = 64
         last_channel = 512
@@ -212,6 +212,6 @@ class ArcMarginModel(nn.Module):
 
 
 if __name__ == "__main__":
-    model = MobileFaceNet().to(device)
+    model = MobileNetV2().to(device)
     print(model)
     summary(model, input_size=(3, 112, 112))
