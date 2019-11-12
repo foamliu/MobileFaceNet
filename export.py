@@ -1,5 +1,5 @@
 import time
-
+from mobilefacenet import MobileFaceNet
 import torch
 
 if __name__ == '__main__':
@@ -11,11 +11,16 @@ if __name__ == '__main__':
     model = checkpoint['model'].module
     print(type(model))
 
-    # model.eval()
     filename = 'mobilefacenet.pt'
     print('saving {}...'.format(filename))
     start = time.time()
     torch.save(model.state_dict(), filename)
+    print('elapsed {} sec'.format(time.time() - start))
+
+    print('saving {}...'.format(filename))
+    start = time.time()
+    model = MobileFaceNet()
+    model.load_state_dict(torch.load(filename))
     print('elapsed {} sec'.format(time.time() - start))
 
     scripted_model_file = 'mobilefacenet_scripted.pt'
