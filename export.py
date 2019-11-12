@@ -12,8 +12,13 @@ if __name__ == '__main__':
     print(type(model))
 
     # model.eval()
-    filename = 'mobile_face_net.pt'
+    filename = 'mobilefacenet.pt'
     print('saving {}...'.format(filename))
     start = time.time()
     torch.save(model.state_dict(), filename)
     print('elapsed {} sec'.format(time.time() - start))
+
+    scripted_model_file = 'mobilefacenet_scripted.pt'
+    # Fuses modules
+    model.fuse_model()
+    torch.jit.save(torch.jit.script(model), scripted_model_file)
