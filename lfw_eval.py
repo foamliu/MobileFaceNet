@@ -11,7 +11,7 @@ import torch
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes
+from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder
 
 angles_file = 'data/angles.txt'
 lfw_pickle = 'data/lfw_funneled.pkl'
@@ -160,6 +160,7 @@ def visualize(threshold):
 
     plt.legend(loc='upper right')
     plt.plot([threshold, threshold], [0, 0.05], 'k-', lw=2)
+    ensure_folder('images')
     plt.savefig('images/theta_dist.png')
     # plt.show()
 
