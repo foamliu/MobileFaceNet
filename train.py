@@ -9,6 +9,7 @@ from data_gen import ArcFaceDataset
 from focal_loss import FocalLoss
 from lfw_eval import lfw_test
 from mobilefacenet import MobileFaceNet, ArcMarginModel
+from optimizer import MFNptimizer
 from utils import parse_args, save_checkpoint, AverageMeter, clip_gradient, accuracy, get_logger
 
 
@@ -34,12 +35,8 @@ def train_net(args):
         metric_fc = ArcMarginModel(args)
         metric_fc = nn.DataParallel(metric_fc)
 
-        if args.optimizer == 'sgd':
-            optimizer = torch.optim.SGD([{'params': model.parameters()}, {'params': metric_fc.parameters()}],
-                                        lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay)
-        else:
-            optimizer = torch.optim.Adam([{'params': model.parameters()}, {'params': metric_fc.parameters()}],
-                                         lr=args.lr, weight_decay=args.weight_decay)
+        optimizer = MFNptimizer(torch.optim.SGD([{'params': model.parameters()}, {'params': metric_fc.parameters()}],
+                                                lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay))
 
     else:
         checkpoint = torch.load(checkpoint)
@@ -80,8 +77,11 @@ def train_net(args):
                                       epoch=epoch,
                                       logger=logger)
 
+        print('\nLearning rate={}, step num={}\n'.split(optimizer.lr, optimizer.step_num))
+
         writer.add_scalar('model/train_loss', train_loss, epoch)
         writer.add_scalar('model/train_acc', train_acc, epoch)
+        writer.add_scalar('model/learning_rate', optimizer.lr, epoch)
 
         # One epoch's validation
         lfw_acc, threshold = lfw_test(model)
