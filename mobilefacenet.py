@@ -133,16 +133,12 @@ class MobileFaceNet(nn.Module):
         # building last several layers
         features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
         features.append(DepthwiseSeparableConv(nin=512, nout=512, kernel_size=7, padding=0))
-        features.append(ConvBNReLU(512, 128, kernel_size=1))
+        features.append(nn.Conv2d(512, 128, kernel_size=1))
+        features.append(nn.BatchNorm2d(128))
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
         self.quant = QuantStub()
         self.dequant = DeQuantStub()
-        # building classifier
-        # self.embedder = nn.Sequential(
-        #     nn.Dropout(0.2),
-        #     nn.BatchNorm1d(128)
-        # )
 
         # weight initialization
         for m in self.modules():
@@ -163,7 +159,6 @@ class MobileFaceNet(nn.Module):
 
         x = self.features(x)
         x = x.mean([2, 3])
-        # x = self.embedder(x)
         x = self.dequant(x)
         return x
 
