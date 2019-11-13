@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from torch import nn
-from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 
 from config import device, grad_clip, print_freq
@@ -63,12 +62,8 @@ def train_net(args):
     train_dataset = ArcFaceDataset('train')
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
-    scheduler = StepLR(optimizer, step_size=args.lr_step, gamma=0.1)
-
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
-        scheduler.step(epoch)
-
         # One epoch's training
         train_loss, train_acc = train(train_loader=train_loader,
                                       model=model,
