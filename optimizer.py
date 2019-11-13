@@ -19,3 +19,14 @@ class MFNptimizer(object):
             self.lr = self.lr / 10
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = self.lr
+
+    def clip_gradient(self, grad_clip):
+        """
+        Clips gradients computed during backpropagation to avoid explosion of gradients.
+        :param optimizer: optimizer with the gradients to be clipped
+        :param grad_clip: clip value
+        """
+        for group in self.optimizer.param_groups:
+            for param in group['params']:
+                if param.grad is not None:
+                    param.grad.data.clamp_(-grad_clip, grad_clip)
