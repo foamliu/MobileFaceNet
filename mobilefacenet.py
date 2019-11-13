@@ -1,10 +1,10 @@
-from torch.quantization import QuantStub, DeQuantStub
 import math
 
 import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.nn import Parameter
+from torch.quantization import QuantStub
 from torch.quantization import QuantStub, DeQuantStub
 from torchsummary import summary
 
@@ -72,9 +72,9 @@ class InvertedResidual(nn.Module):
             return self.conv(x)
 
 
-class depthwise_separable_conv(nn.Module):
+class DepthwiseSeparableConv(nn.Module):
     def __init__(self, nin, nout, kernel_size, padding, bias=False):
-        super(depthwise_separable_conv, self).__init__()
+        super(DepthwiseSeparableConv, self).__init__()
         self.depthwise = nn.Conv2d(nin, nin, kernel_size=kernel_size, padding=padding, groups=nin, bias=bias)
         self.pointwise = nn.Conv2d(nin, nout, kernel_size=1, bias=bias)
 
@@ -122,7 +122,7 @@ class MobileFaceNet(nn.Module):
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
         features = [ConvBNReLU(3, input_channel, stride=1)]
-        features.append(depthwise_separable_conv(nin=64, nout=64, kernel_size=3, padding=0))
+        features.append(DepthwiseSeparableConv(nin=64, nout=64, kernel_size=3, padding=0))
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
@@ -132,16 +132,17 @@ class MobileFaceNet(nn.Module):
                 input_channel = output_channel
         # building last several layers
         features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
-        features.append(depthwise_separable_conv(nin=512, nout=512, kernel_size=7, padding=0))
+        features.append(DepthwiseSeparableConv(nin=512, nout=512, kernel_size=7, padding=0))
+        features.append(ConvBNReLU(512, 128, kernel_size=1))
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
         self.quant = QuantStub()
         self.dequant = DeQuantStub()
         # building classifier
-        self.embedder = nn.Sequential(
-            nn.Dropout(0.2),
-            nn.BatchNorm1d(512)
-        )
+        # self.embedder = nn.Sequential(
+        #     nn.Dropout(0.2),
+        #     nn.BatchNorm1d(128)
+        # )
 
         # weight initialization
         for m in self.modules():
@@ -162,7 +163,7 @@ class MobileFaceNet(nn.Module):
 
         x = self.features(x)
         x = x.mean([2, 3])
-        x = self.embedder(x)
+        # x = self.embedder(x)
         x = self.dequant(x)
         return x
 
