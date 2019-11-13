@@ -73,7 +73,7 @@ def train_net(args):
                                       epoch=epoch,
                                       logger=logger)
 
-        print('\nLearning rate={}, step num={}\n'.split(optimizer.lr, optimizer.step_num))
+        print('\nLearning rate={}, step num={}\n'.format(optimizer.lr, optimizer.step_num))
 
         writer.add_scalar('model/train_loss', train_loss, epoch)
         writer.add_scalar('model/train_acc', train_acc, epoch)
