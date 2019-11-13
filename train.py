@@ -9,7 +9,7 @@ from focal_loss import FocalLoss
 from lfw_eval import lfw_test
 from mobilefacenet import MobileFaceNet, ArcMarginModel
 from optimizer import MFNptimizer
-from utils import parse_args, save_checkpoint, AverageMeter, clip_gradient, accuracy, get_logger
+from utils import parse_args, save_checkpoint, AverageMeter, accuracy, get_logger
 
 
 def train_net(args):
