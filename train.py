@@ -36,7 +36,8 @@ def train_net(args):
         metric_fc = nn.DataParallel(metric_fc)
 
         optimizer = MFNptimizer(torch.optim.SGD([{'params': model.parameters()}, {'params': metric_fc.parameters()}],
-                                                lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay))
+                                                lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay,
+                                                nesterov=True))
 
     else:
         checkpoint = torch.load(checkpoint)
