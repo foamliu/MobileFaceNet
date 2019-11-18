@@ -8,9 +8,12 @@ import cv2 as cv
 import numpy as np
 import scipy.stats
 import torch
+from PIL import Image
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
+from config import device
+from data_gen import data_transforms
 from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder
 
 angles_file = 'data/angles.txt'
@@ -57,16 +60,17 @@ def process():
         pickle.dump(save, file, pickle.HIGHEST_PROTOCOL)
 
 
-def get_image(samples, file):
+def get_image(transformer, samples, file):
     filtered = [sample for sample in samples if file in sample['full_path'].replace('\\', '/')]
     assert (len(filtered) == 1), 'len(filtered): {} file:{}'.format(len(filtered), file)
     sample = filtered[0]
     full_path = sample['full_path']
     landmarks = sample['landmarks']
     img = align_face(full_path, landmarks)  # BGR
-    img = ((img - 127.5) / 128.)
-    img = np.transpose(img, (2, 0, 1))  # HxWxC array to CxHxW
-    img = torch.FloatTensor(img)
+    img = img[..., ::-1]  # RGB
+    img = Image.fromarray(img, 'RGB')  # RGB
+    img = transformer(img)
+    img = img.to(device)
     return img
 
 
@@ -77,6 +81,7 @@ def evaluate(model):
         data = pickle.load(file)
 
     samples = data['samples']
+    transformer = data_transforms['valid']
 
     filename = 'data/lfw_test_pair.txt'
     with open(filename, 'r') as file:
@@ -89,10 +94,10 @@ def evaluate(model):
         for line in tqdm(lines):
             tokens = line.split()
             file0 = tokens[0]
-            img0 = get_image(samples, file0)
+            img0 = get_image(transformer, samples, file0)
             file1 = tokens[1]
-            img1 = get_image(samples, file1)
-            imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float)
+            img1 = get_image(transformer, samples, file1)
+            imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float, device=device)
             imgs[0] = img0
             imgs[1] = img1
 
