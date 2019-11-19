@@ -164,7 +164,6 @@ def parse_args():
     parser.add_argument('--pretrained', type=bool, default=False, help='pretrained model')
     parser.add_argument('--end-epoch', type=int, default=1000, help='training epoch size.')
     parser.add_argument('--lr', type=float, default=0.1, help='start learning rate')
-    parser.add_argument('--lr-step', type=int, default=10, help='period of learning rate decay')
     parser.add_argument('--optimizer', default='sgd', help='optimizer')
     parser.add_argument('--weight-decay', type=float, default=4e-5, help='weight decay')
     parser.add_argument('--mom', type=float, default=0.9, help='momentum')
@@ -175,7 +174,6 @@ def parse_args():
     parser.add_argument('--easy-margin', type=bool, default=False, help='easy margin')
     parser.add_argument('--focal-loss', type=bool, default=False, help='focal loss')
     parser.add_argument('--gamma', type=float, default=2.0, help='focusing parameter gamma')
-    parser.add_argument('--full-log', type=bool, default=False, help='full logging')
     parser.add_argument('--checkpoint', type=str, default=None, help='checkpoint')
     args = parser.parse_args()
     return args
