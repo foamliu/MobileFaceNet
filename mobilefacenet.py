@@ -137,21 +137,20 @@ class MobileFaceNet(nn.Module):
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
         features = list()
-        features.append(ConvBNReLU(3, input_channel, stride=2))
-        features.append(DepthwiseSeparableConv(in_planes=64, out_planes=64, kernel_size=3, padding=1))
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
-            print('c: {}, output_channel: {}'.format(c, output_channel))
             for i in range(n):
                 stride = s if i == 0 else 1
                 features.append(block(input_channel, output_channel, stride, expand_ratio=t))
                 input_channel = output_channel
         # building last several layers
-        features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
-        features.append(GDConv(in_planes=512, out_planes=512, kernel_size=7, padding=0))
-        features.append(nn.Conv2d(512, 128, kernel_size=1))
-        features.append(nn.BatchNorm2d(128))
+        self.conv1 = ConvBNReLU(3, input_channel, stride=2)
+        self.dw_conv = DepthwiseSeparableConv(in_planes=64, out_planes=64, kernel_size=3, padding=1)
+        self.conv2 = ConvBNReLU(input_channel, self.last_channel, kernel_size=1)
+        self.gdconv = GDConv(in_planes=512, out_planes=512, kernel_size=7, padding=0)
+        self.conv3 = nn.Conv2d(512, 128, kernel_size=1)
+        self.bn = nn.BatchNorm2d(128)
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
 
@@ -169,7 +168,13 @@ class MobileFaceNet(nn.Module):
                 nn.init.zeros_(m.bias)
 
     def forward(self, x):
+        x = self.conv1(x)
+        x = self.dw_conv(x)
         x = self.features(x)
+        x = self.conv2(x)
+        x = self.gdconv(x)
+        x = self.conv3(x)
+        x = self.bn(x)
         x = x.view(x.size(0), -1)
         return x
 
