@@ -135,7 +135,7 @@ class MobileFaceNet(nn.Module):
 
         # building first layer
         # input_channel = _make_divisible(input_channel * width_mult, round_nearest)
-        # self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
+        self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
         self.conv1 = ConvBNReLU(3, input_channel, stride=2)
         self.dw_conv = DepthwiseSeparableConv(in_planes=64, out_planes=64, kernel_size=3, padding=1)
         features = list()
