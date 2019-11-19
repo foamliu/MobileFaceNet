@@ -25,12 +25,6 @@ def train_net(args):
     # Initialize / load checkpoint
     if checkpoint is None:
         model = MobileFaceNet()
-
-        if args.pretrained:
-            filename = 'mobilefacenet.pt'
-            print('loading pretrained model: {}...'.format(filename))
-            model.load_state_dict(torch.load(filename))
-
         metric_fc = ArcMarginModel(args)
 
         optimizer = MFNptimizer(
