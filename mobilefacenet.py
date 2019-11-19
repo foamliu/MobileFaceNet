@@ -156,7 +156,6 @@ class MobileFaceNet(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
-        x = x.mean([2, 3])
         x = x.view(x.size(0), -1)
         return x
 
