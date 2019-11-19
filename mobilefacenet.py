@@ -125,7 +125,7 @@ class MobileFaceNet(nn.Module):
         self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
         features = list()
         features.append(ConvBNReLU(3, input_channel, stride=2))
-        features.append(DepthwiseSeparableConv(in_planes=64, out_planes=64, kernel_size=3, padding=0))
+        features.append(DepthwiseSeparableConv(in_planes=64, out_planes=64, kernel_size=3, padding=1))
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
