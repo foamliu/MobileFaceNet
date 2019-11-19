@@ -30,8 +30,13 @@ def train_net(args):
         print(type(model.parameters()))
 
         optimizer = MFNptimizer(
-            torch.optim.SGD([{'params': [p for p in model.parameters() if p not in model.conv3.parameters()]},
+            torch.optim.SGD([{'params': model.conv1.parameters()},
+                             {'params': model.dw_conv.parameters()},
+                             {'params': model.features.parameters()},
+                             {'params': model.conv2.parameters()},
+                             {'params': model.gdconv.parameters()},
                              {'params': model.conv3.parameters(), 'weight_decay': 4e-4},
+                             {'params': model.bn.parameters()},
                              {'params': metric_fc.parameters()}],
                             lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay, nesterov=True))
 
