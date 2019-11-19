@@ -202,5 +202,5 @@ class ArcMarginModel(nn.Module):
 
 if __name__ == "__main__":
     model = MobileFaceNet()
-    print(model)
+    # print(model)
     scope(model, input_size=(3, 112, 112))
