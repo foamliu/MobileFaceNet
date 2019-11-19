@@ -142,6 +142,7 @@ class MobileFaceNet(nn.Module):
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
+            print('c: {}, output_channel: {}'.format(c, output_channel))
             for i in range(n):
                 stride = s if i == 0 else 1
                 features.append(block(input_channel, output_channel, stride, expand_ratio=t))
