@@ -26,8 +26,6 @@ def train_net(args):
         model = MobileFaceNet()
         metric_fc = ArcMarginModel(args)
 
-        print(type(model.parameters()))
-
         optimizer = torch.optim.SGD([{'params': model.conv1.parameters()},
                                      {'params': model.dw_conv.parameters()},
                                      {'params': model.features.parameters()},
