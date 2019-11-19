@@ -4,7 +4,6 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from torch.nn import Parameter
-from torchscope import scope
 
 from config import device, num_classes, emb_size
 
@@ -213,6 +212,8 @@ class ArcMarginModel(nn.Module):
 
 
 if __name__ == "__main__":
+    from torchscope import scope
+
     model = MobileFaceNet()
     # print(model)
     scope(model, input_size=(3, 112, 112))
