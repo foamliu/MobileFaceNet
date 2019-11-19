@@ -9,7 +9,7 @@ from data_gen import ArcFaceDataset
 from focal_loss import FocalLoss
 from lfw_eval import lfw_test
 from mobilefacenet import MobileFaceNet, ArcMarginModel
-from utils import parse_args, save_checkpoint, AverageMeter, accuracy, get_logger
+from utils import parse_args, save_checkpoint, AverageMeter, accuracy, get_logger, clip_gradient
 
 
 def train_net(args):
@@ -128,7 +128,7 @@ def train(train_loader, model, metric_fc, criterion, optimizer, epoch, logger):
         loss.backward()
 
         # Clip gradients
-        optimizer.clip_gradient(grad_clip)
+        clip_gradient(optimizer, grad_clip)
 
         # Update weights
         optimizer.step()
