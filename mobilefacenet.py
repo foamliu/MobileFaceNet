@@ -60,6 +60,19 @@ class DepthwiseSeparableConv(nn.Module):
         return x
 
 
+class GDConv(nn.Module):
+    def __init__(self, in_planes, out_planes, kernel_size, padding, bias=False):
+        super(GDConv, self).__init__()
+        self.depthwise = nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size, padding=padding, groups=in_planes,
+                                   bias=bias)
+        self.bn = nn.BatchNorm2d(in_planes)
+
+    def forward(self, x):
+        x = self.depthwise(x)
+        x = self.bn(x)
+        return x
+
+
 class InvertedResidual(nn.Module):
     def __init__(self, inp, oup, stride, expand_ratio):
         super(InvertedResidual, self).__init__()
@@ -135,7 +148,7 @@ class MobileFaceNet(nn.Module):
                 input_channel = output_channel
         # building last several layers
         features.append(ConvBNReLU(input_channel, self.last_channel, kernel_size=1))
-        features.append(DepthwiseSeparableConv(in_planes=512, out_planes=512, kernel_size=7, padding=0))
+        features.append(GDConv(in_planes=512, out_planes=512, kernel_size=7, padding=0))
         features.append(nn.Conv2d(512, 128, kernel_size=1))
         features.append(nn.BatchNorm2d(128))
         # make it nn.Sequential
