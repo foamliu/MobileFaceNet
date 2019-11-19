@@ -9,7 +9,6 @@ from data_gen import ArcFaceDataset
 from focal_loss import FocalLoss
 from lfw_eval import lfw_test
 from mobilefacenet import MobileFaceNet, ArcMarginModel
-from optimizer import MFNptimizer
 from utils import parse_args, save_checkpoint, AverageMeter, accuracy, get_logger
 
 
@@ -29,16 +28,15 @@ def train_net(args):
 
         print(type(model.parameters()))
 
-        optimizer = MFNptimizer(
-            torch.optim.SGD([{'params': model.conv1.parameters()},
-                             {'params': model.dw_conv.parameters()},
-                             {'params': model.features.parameters()},
-                             {'params': model.conv2.parameters()},
-                             {'params': model.gdconv.parameters()},
-                             {'params': model.conv3.parameters(), 'weight_decay': 4e-4},
-                             {'params': model.bn.parameters()},
-                             {'params': metric_fc.parameters()}],
-                            lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay, nesterov=True))
+        optimizer = torch.optim.SGD([{'params': model.conv1.parameters()},
+                                     {'params': model.dw_conv.parameters()},
+                                     {'params': model.features.parameters()},
+                                     {'params': model.conv2.parameters()},
+                                     {'params': model.gdconv.parameters()},
+                                     {'params': model.conv3.parameters(), 'weight_decay': 4e-4},
+                                     {'params': model.bn.parameters()},
+                                     {'params': metric_fc.parameters()}],
+                                    lr=args.lr, momentum=args.mom, weight_decay=args.weight_decay, nesterov=True)
 
         model = nn.DataParallel(model)
         metric_fc = nn.DataParallel(metric_fc)
