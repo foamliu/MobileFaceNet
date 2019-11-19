@@ -172,10 +172,10 @@ class MobileFaceNet(nn.Module):
         x = self.dw_conv(x)
         x = self.features(x)
         x = self.conv2(x)
-        # x = self.gdconv(x)
-        # x = self.conv3(x)
-        # x = self.bn(x)
-        # x = x.view(x.size(0), -1)
+        x = self.gdconv(x)
+        x = self.conv3(x)
+        x = self.bn(x)
+        x = x.view(x.size(0), -1)
         return x
 
 
