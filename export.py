@@ -24,4 +24,5 @@ if __name__ == '__main__':
     print('elapsed {} sec'.format(time.time() - start))
 
     scripted_model_file = 'mobilefacenet_scripted.pt'
+    print('saving {}...'.format(scripted_model_file))
     torch.jit.save(torch.jit.script(model), scripted_model_file)
