@@ -9,8 +9,8 @@ PyTorch implementation of MobileFaceNets: Efficient CNNs for Accurate Real-Time 
 
 |Accuracy|LFW|MegaFace|Download|
 |---|---|---|---|
-|paper|99.28%|90.16%||
-|ours|99.18%|82.55%|[Link](https://github.com/foamliu/MobileFaceNet/releases/download/v1.0/mobilefacenet_scripted.pt)|
+|paper|99.55%|90.16%||
+|ours|99.48%|82.55%|[Link](https://github.com/foamliu/MobileFaceNet/releases/download/v1.0/mobilefacenet_scripted.pt)|
 
 ## Dataset
 ### Introduction
