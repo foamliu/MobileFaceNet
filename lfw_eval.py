@@ -90,32 +90,33 @@ def evaluate(model):
     angles = []
 
     elapsed = 0
-    with torch.no_grad():
-        for line in tqdm(lines):
-            tokens = line.split()
-            file0 = tokens[0]
-            img0 = get_image(transformer, samples, file0)
-            file1 = tokens[1]
-            img1 = get_image(transformer, samples, file1)
-            imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float, device=device)
-            imgs[0] = img0
-            imgs[1] = img1
 
-            start = time.time()
+    for line in tqdm(lines):
+        tokens = line.split()
+        file0 = tokens[0]
+        img0 = get_image(transformer, samples, file0)
+        file1 = tokens[1]
+        img1 = get_image(transformer, samples, file1)
+        imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float, device=device)
+        imgs[0] = img0
+        imgs[1] = img1
+
+        start = time.time()
+        with torch.no_grad():
             output = model(imgs)
-            end = time.time()
-            elapsed += end - start
+        end = time.time()
+        elapsed += end - start
 
-            feature0 = output[0].cpu().numpy()
-            feature1 = output[1].cpu().numpy()
-            x0 = feature0 / np.linalg.norm(feature0)
-            x1 = feature1 / np.linalg.norm(feature1)
-            cosine = np.dot(x0, x1)
-            cosine = np.clip(cosine, -1.0, 1.0)
-            theta = math.acos(cosine)
-            theta = theta * 180 / math.pi
-            is_same = tokens[2]
-            angles.append('{} {}\n'.format(theta, is_same))
+        feature0 = output[0].cpu().numpy()
+        feature1 = output[1].cpu().numpy()
+        x0 = feature0 / np.linalg.norm(feature0)
+        x1 = feature1 / np.linalg.norm(feature1)
+        cosine = np.dot(x0, x1)
+        cosine = np.clip(cosine, -1.0, 1.0)
+        theta = math.acos(cosine)
+        theta = theta * 180 / math.pi
+        is_same = tokens[2]
+        angles.append('{} {}\n'.format(theta, is_same))
 
     print('elapsed: {} ms'.format(elapsed / (6000 * 2) * 1000))
 
