@@ -333,7 +333,7 @@ if __name__ == "__main__":
 
     scripted_model_file = 'mobilefacenet_scripted.pt'
     model = torch.jit.load(scripted_model_file)
-    model = model.to('cpu')
+    model = model.to(device)
     model.eval()
 
     acc, threshold = lfw_test(model)
