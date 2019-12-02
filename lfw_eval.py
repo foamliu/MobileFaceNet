@@ -71,7 +71,9 @@ def get_image(samples, file):
     return img
 
 
-def transform(img):
+def transform(img, flip=False):
+    if flip:
+        img = cv.flip(img, 1)
     img = img[..., ::-1]  # RGB
     img = Image.fromarray(img, 'RGB')  # RGB
     img = transformer(img)
@@ -80,11 +82,15 @@ def transform(img):
 
 
 def get_feature(model, samples, file):
+    imgs = torch.zeros([2, 3, 112, 112], dtype=torch.float, device=device)
     img = get_image(samples, file)
-    imgs = img.unsqueeze(dim=0)
+    imgs[0] = transform(img.copy(), False)
+    imgs[1] = transform(img.copy(), True)
     with torch.no_grad():
         output = model(imgs)
-    feature = output[0].cpu().numpy()
+    feature_0 = output[0].cpu().numpy()
+    feature_1 = output[1].cpu().numpy()
+    feature = feature_0 + feature_1
     return feature / np.linalg.norm(feature)
 
 
