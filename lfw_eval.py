@@ -30,6 +30,7 @@ def process():
     subjects = [d for d in os.listdir('data/lfw_funneled') if os.path.isdir(os.path.join('data/lfw_funneled', d))]
     assert (len(subjects) == 5749), "Number of subjects is: {}!".format(len(subjects))
 
+    print('Collecting file names...')
     file_names = []
     for i in tqdm(range(len(subjects))):
         sub = subjects[i]
@@ -42,6 +43,7 @@ def process():
 
     assert (len(file_names) == 13233), "Number of files is: {}!".format(len(file_names))
 
+    print('Aligning faces...')
     samples = []
     for item in tqdm(file_names):
         filename = item['filename']
