@@ -39,7 +39,7 @@ def train_net(args):
         model = nn.DataParallel(model)
         metric_fc = nn.DataParallel(metric_fc)
 
-        scheduler = MultiStepLR(optimizer, milestones=[10, 20, 30, 40], gamma=0.1)
+
 
     else:
         checkpoint = torch.load(checkpoint)
@@ -48,7 +48,6 @@ def train_net(args):
         model = checkpoint['model']
         metric_fc = checkpoint['metric_fc']
         optimizer = checkpoint['optimizer']
-        scheduler = checkpoint['scheduler']
 
     logger = get_logger()
 
@@ -65,6 +64,8 @@ def train_net(args):
     # Custom dataloaders
     train_dataset = ArcFaceDataset('train')
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
+
+    scheduler = MultiStepLR(optimizer, milestones=[10, 20, 30, 40], gamma=0.1)
 
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
@@ -86,8 +87,8 @@ def train_net(args):
 
         # One epoch's validation
         lfw_acc, threshold = lfw_test(model)
-        writer.add_scalar('model/valid_acc', lfw_acc, epoch)
-        writer.add_scalar('model/valid_thres', threshold, epoch)
+        writer.add_scalar('model/lfw_acc', lfw_acc, epoch)
+        writer.add_scalar('model/threshold', threshold, epoch)
 
         # Check if there was an improvement
         is_best = lfw_acc > best_acc

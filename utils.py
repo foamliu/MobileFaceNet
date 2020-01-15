@@ -9,7 +9,7 @@ from PIL import Image
 
 from align_faces import get_reference_facial_points, warp_and_crop_face
 from config import image_h, image_w
-from mtcnn.detector import detect_faces
+from retinaface.detector import detector
 
 
 def save_checkpoint(epoch, epochs_since_improvement, model, metric_fc, optimizer, acc, is_best):
@@ -105,7 +105,7 @@ def align_face(img_fn, facial5points):
 def get_face_attributes(full_path):
     try:
         img = Image.open(full_path).convert('RGB')
-        bounding_boxes, landmarks = detect_faces(img)
+        bounding_boxes, landmarks = detector.detect_faces(img)
 
         if len(landmarks) > 0:
             landmarks = [int(round(x)) for x in landmarks[0]]
@@ -138,7 +138,7 @@ def select_central_face(im_size, bounding_boxes):
 def get_central_face_attributes(full_path):
     try:
         img = Image.open(full_path).convert('RGB')
-        bounding_boxes, landmarks = detect_faces(img)
+        bounding_boxes, landmarks = detector.detect_faces(img)
 
         if len(landmarks) > 0:
             i = select_central_face(img.size, bounding_boxes)
@@ -153,7 +153,7 @@ def get_central_face_attributes(full_path):
 
 def get_all_face_attributes(full_path):
     img = Image.open(full_path).convert('RGB')
-    bounding_boxes, landmarks = detect_faces(img)
+    bounding_boxes, landmarks = detector.detect_faces(img)
     return bounding_boxes, landmarks
 
 
