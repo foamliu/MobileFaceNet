@@ -39,8 +39,6 @@ def train_net(args):
         model = nn.DataParallel(model)
         metric_fc = nn.DataParallel(metric_fc)
 
-
-
     else:
         checkpoint = torch.load(checkpoint)
         start_epoch = checkpoint['epoch'] + 1
