@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # # %% 1 ~ 5179510
 
     try:
-        for i in tqdm(range(10000000)):
+        for i in tqdm(range(10000)):
             # print(i)
             header, s = recordio.unpack(imgrec.read_idx(i + 1))
             img = mx.image.imdecode(s).asnumpy()

@@ -82,7 +82,7 @@ def accuracy(scores, targets, k=1):
 
 
 def align_face(img_fn, facial5points):
-    raw = cv.imread(img_fn, True)  # BGR
+    raw = cv.imread(img_fn, 1)  # BGR
     facial5points = np.reshape(facial5points, (2, 5))
 
     crop_size = (image_h, image_w)
@@ -173,13 +173,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train face network')
     # general
     parser.add_argument('--pretrained', type=bool, default=False, help='pretrained model')
-    parser.add_argument('--end-epoch', type=int, default=1000, help='training epoch size.')
-    parser.add_argument('--lr', type=float, default=0.1, help='start learning rate')
+    parser.add_argument('--end-epoch', type=int, default=10, help='training epoch size.') # default epoch 1000
+    parser.add_argument('--lr', type=float, default=0.0001, help='start learning rate') # previous default 0.1
     parser.add_argument('--optimizer', default='sgd', help='optimizer')
     parser.add_argument('--weight-decay', type=float, default=4e-5, help='weight decay')
     parser.add_argument('--mom', type=float, default=0.9, help='momentum')
-    parser.add_argument('--emb-size', type=int, default=512, help='embedding length')
-    parser.add_argument('--batch-size', type=int, default=512, help='batch size in each context')
+    parser.add_argument('--emb-size', type=int, default=128, help='embedding length')
+    parser.add_argument('--batch-size', type=int, default=128, help='batch size in each context') # batch default 512
     parser.add_argument('--margin-m', type=float, default=0.5, help='angular margin m')
     parser.add_argument('--margin-s', type=float, default=64.0, help='feature scale s')
     parser.add_argument('--easy-margin', type=bool, default=False, help='easy margin')
