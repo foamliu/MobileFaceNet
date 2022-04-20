@@ -1,3 +1,11 @@
+"""
+The custom dataset is not just face portion so we need to pass through the detector first to detect the faces
+
+* the code will first read the images from the train folder consisting of the images
+* second pass the images through the face detector to detect face only
+* detected faces will be resized to 112x112x3  and saved in the folder name custom_images
+"""
+
 import os
 import pickle
 
@@ -20,7 +28,7 @@ if __name__ == "__main__":
     # # %% 1 ~ 5179510
 
     try:
-        for i in tqdm(range(200000)):
+        for i in tqdm(range(1000000)):
             # print(i)
             header, s = recordio.unpack(imgrec.read_idx(i + 1))
             img = mx.image.imdecode(s).asnumpy()
