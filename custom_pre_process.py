@@ -50,5 +50,7 @@ if __name__ == "__main__":
     with open(pickle_file, 'wb') as file:
         pickle.dump(samples, file)
 
+    print('Total Individual : {}'.format(index+1))
     print('num_samples: ' + str(len(samples)))
+
 

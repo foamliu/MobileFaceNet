@@ -10,12 +10,12 @@ from torch import nn
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.tensorboard import SummaryWriter
 
-from config import device, grad_clip, print_freq, pretrained_model_path
-from data_gen import ArcFaceDataset
+from custom_config import device, grad_clip, print_freq, pretrained_model_path
+from custom_data_gen import CustomFaceDataset
 from focal_loss import FocalLoss
-from lfw_eval import lfw_test
+from custom_eval import custom_test
 from mobilefacenet import MobileFaceNet, ArcMarginModel
-from facenet_utils import parse_args, save_checkpoint, AverageMeter, accuracy, get_logger, clip_gradient
+from custom_utils import parse_args, save_checkpoint, AverageMeter, accuracy, get_logger, clip_gradient
 
 import pdb
 
@@ -69,10 +69,10 @@ def train_net(args):
         criterion = nn.CrossEntropyLoss().to(device)
 
     # Custom dataloaders
-    train_dataset = ArcFaceDataset('train')
+    train_dataset = CustomFaceDataset('train')
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
-    scheduler = MultiStepLR(optimizer, milestones=[5, 10, 15, 20], gamma=0.1)
+    scheduler = MultiStepLR(optimizer, milestones=[5, 10, 30, 50, 80], gamma=0.1) # milestone = [5, 10, 15, 20] default gamma=0.1
 
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
@@ -93,8 +93,8 @@ def train_net(args):
         writer.add_scalar('model/learning_rate', lr, epoch)
 
         # One epoch's validation
-        lfw_acc, threshold = lfw_test(model)
-        writer.add_scalar('model/lfw_acc', lfw_acc, epoch)
+        lfw_acc, threshold = custom_test(model)
+        writer.add_scalar('model/custom_acc', lfw_acc, epoch)
         writer.add_scalar('model/threshold', threshold, epoch)
 
         # Check if there was an improvement

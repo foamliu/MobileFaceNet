@@ -16,8 +16,8 @@ print_freq = 100  # print training/validation stats  every __ batches
 checkpoint = None  # path to checkpoint, None if none
 
 # Data parameters
-num_classes = 5
-num_samples = 283
+num_classes = 16
+num_samples = 924
 DATA_DIR = 'data'
 custom_folder = '/home/ahmadob/dataset/facerecognition_dataset/train_jpeg_set'
 IMG_DIR = 'data/images_custom'

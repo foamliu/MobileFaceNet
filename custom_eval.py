@@ -8,13 +8,19 @@ import cv2 as cv
 import numpy as np
 import scipy.stats
 import torch
+from torch import nn
 from PIL import Image
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 from custom_config import device, image_w, image_h
 from data_gen import data_transforms
-from custom_utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder, get_face_yolo
+from custom_utils import draw_bboxes, ensure_folder, get_face_yolo
+from mobilefacenet import MobileFaceNet, ArcMarginModel
+from facenet_utils import parse_args
+
+global args
+args = parse_args()
 
 
 angles_file = 'data/custom_angles.txt'
@@ -113,13 +119,15 @@ def evaluate(model):
         start = time.time()
         x0 = get_feature(model, samples, tokens[0])
         x1 = get_feature(model, samples, tokens[1])
+
         end = time.time()
         elapsed += end - start
-
+        # pdb.set_trace()
         cosine = np.dot(x0, x1)
         cosine = np.clip(cosine, -1.0, 1.0)
         theta = math.acos(cosine)
         theta = theta * 180 / math.pi
+        # print(theta)
         is_same = tokens[2]
         angles.append('{} {}\n'.format(theta, is_same))
 
@@ -230,53 +238,6 @@ def error_analysis(threshold):
     print('len(fp): ' + str(len(fp)))
     print('len(fn): ' + str(len(fn)))
 
-    num_fp = len(fp)
-    num_fn = len(fn)
-
-    filename = 'data/custom_test_pair.txt'
-    with open(filename, 'r') as file:
-        pair_lines = file.readlines()
-
-    # for i in range(num_fp):
-    #     fp_id = fp[i]
-    #     fp_line = pair_lines[fp_id]
-    #     tokens = fp_line.split()
-    #     file0 = tokens[0]
-    #     copy_file(file0, '{}_fp_0.jpg'.format(i))
-    #     save_aligned(file0, '{}_fp_0_aligned.jpg'.format(i))
-    #     file1 = tokens[1]
-    #     copy_file(file1, '{}_fp_1.jpg'.format(i))
-    #     save_aligned(file1, '{}_fp_1_aligned.jpg'.format(i))
-    #
-    # for i in range(num_fn):
-    #     fn_id = fn[i]
-    #     fn_line = pair_lines[fn_id]
-    #     tokens = fn_line.split()
-    #     file0 = tokens[0]
-    #     copy_file(file0, '{}_fn_0.jpg'.format(i))
-    #     save_aligned(file0, '{}_fn_0_aligned.jpg'.format(i))
-    #     file1 = tokens[1]
-    #     copy_file(file1, '{}_fn_1.jpg'.format(i))
-    #     save_aligned(file1, '{}_fn_1_aligned.jpg'.format(i))
-
-
-# def save_aligned(old_fn, new_fn):
-#     old_fn = os.path.join('data/lfw_funneled', old_fn)
-#     is_valid, bounding_boxes, landmarks = get_central_face_attributes(old_fn)
-#     img = align_face(old_fn, landmarks)
-#     new_fn = os.path.join('images', new_fn)
-#     cv.imwrite(new_fn, img)
-
-
-# def copy_file(old, new):
-#     old_fn = os.path.join('data/lfw_funneled', old)
-#     img = cv.imread(old_fn)
-#     bounding_boxes, landmarks = get_all_face_attributes(old_fn)
-#     draw_bboxes(img, bounding_boxes, landmarks)
-#     cv.resize(img, (224, 224))
-#     new_fn = os.path.join('images', new)
-#     cv.imwrite(new_fn, img)
-
 
 def get_threshold():
     with open(angles_file, 'r') as file:
@@ -290,7 +251,7 @@ def get_threshold():
         type = int(tokens[1])
         data.append({'angle': angle, 'type': type})
 
-    min_error = 6000
+    min_error = 138
     min_threshold = 0
 
     for d in data:
@@ -318,7 +279,7 @@ def custom_test(model):
     evaluate(model)
 
     print('Calculating threshold...')
-    # threshold = 70.36
+    # threshold = 62 with finetuned 89 acc, 52 with finetune on lfw acc 71
     thres = get_threshold()
     print('Calculating accuracy...')
     acc = accuracy(thres)
@@ -333,12 +294,10 @@ if __name__ == "__main__":
     model = model.to(device)
     model.eval()
 
-    # scripted_model_file = 'pretrained_model/mobilefacenet_scripted.pt'
+    # scripted_model_file = 'pretrained_model/mobilefacenet_scripted.pt' # does not work, issue running mean and variance problem
     # model = torch.jit.load(scripted_model_file)
-    # model.load_state_dict(model.state_dict(), strict=False)
     # model = model.to(device)
     # model.eval()
-
     acc, threshold = custom_test(model)
 
     print('Visualizing {}...'.format(angles_file))
