@@ -1,7 +1,7 @@
 import math
 import os
+import pdb
 import pickle
-import tarfile
 import time
 
 import cv2 as cv
@@ -12,51 +12,46 @@ from PIL import Image
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-from config import device
+from custom_config import device, image_w, image_h
 from data_gen import data_transforms
-from facenet_utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder
+from custom_utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder, get_face_yolo
 
-angles_file = 'data/angles.txt'
-lfw_pickle = 'data/lfw_funneled.pkl'
+
+angles_file = 'data/custom_angles.txt'
+custom_pickle = 'data/custom_test.pkl'
 transformer = data_transforms['val']
 
-
-def extract(filename):
-    with tarfile.open(filename, 'r') as tar:
-        tar.extractall('data')
-
-
 def process():
-    subjects = [d for d in os.listdir('data/lfw_funneled') if os.path.isdir(os.path.join('data/lfw_funneled', d))]
-    assert (len(subjects) == 5749), "Number of subjects is: {}!".format(len(subjects))
+    testset_dir = "/home/ahmadob/dataset/facerecognition_dataset/test_set"
+    subjects = [d for d in os.listdir(testset_dir) if os.path.isdir(os.path.join(testset_dir, d))]
+    assert (len(subjects) == 5), "Number of subjects is: {}!".format(len(subjects))
 
     print('Collecting file names...')
     file_names = []
     for i in tqdm(range(len(subjects))):
         sub = subjects[i]
-        folder = os.path.join('data/lfw_funneled', sub)
+        folder = os.path.join(testset_dir, sub)
         files = [f for f in os.listdir(folder) if
                  os.path.isfile(os.path.join(folder, f)) and f.lower().endswith('.jpg')]
         for file in files:
             filename = os.path.join(folder, file)
             file_names.append({'filename': filename, 'class_id': i, 'subject': sub})
 
-    assert (len(file_names) == 13233), "Number of files is: {}!".format(len(file_names))
 
-    print('Aligning faces...')
+    print('Detecting faces...')
     samples = []
     for item in tqdm(file_names):
         filename = item['filename']
         class_id = item['class_id']
         sub = item['subject']
-        is_valid, bounding_boxes, landmarks = get_central_face_attributes(filename)
+        is_valid, face = get_face_yolo(filename)
 
         if is_valid:
+            face = cv.resize(face, (image_w, image_h))
             samples.append(
-                {'class_id': class_id, 'subject': sub, 'full_path': filename, 'bounding_boxes': bounding_boxes,
-                 'landmarks': landmarks})
+                {'class_id': class_id, 'subject': sub, 'full_path': filename, 'face': face})
 
-    with open(lfw_pickle, 'wb') as file:
+    with open(custom_pickle, 'wb') as file:
         save = {
             'samples': samples
         }
@@ -64,12 +59,11 @@ def process():
 
 
 def get_image(samples, file):
-    filtered = [sample for sample in samples if file in sample['full_path'].replace('\\', '/')]
+    filtered = [sample for sample in samples if file in sample['full_path']]
     assert (len(filtered) == 1), 'len(filtered): {} file:{}'.format(len(filtered), file)
     sample = filtered[0]
-    full_path = sample['full_path']
-    landmarks = sample['landmarks']
-    img = align_face(full_path, landmarks)  # BGR
+    img = sample['face']  # BGR
+    # print(img)
     return img
 
 
@@ -88,6 +82,7 @@ def get_feature(model, samples, file):
     img = get_image(samples, file)
     imgs[0] = transform(img.copy(), False)
     imgs[1] = transform(img.copy(), True)
+    # pdb.set_trace()
     with torch.no_grad():
         output = model(imgs)
     feature_0 = output[0].cpu().numpy()
@@ -99,12 +94,12 @@ def get_feature(model, samples, file):
 def evaluate(model):
     model.eval()
 
-    with open(lfw_pickle, 'rb') as file:
+    with open(custom_pickle, 'rb') as file:
         data = pickle.load(file)
 
     samples = data['samples']
 
-    filename = 'data/lfw_test_pair.txt'
+    filename = 'data/custom_test_pair.txt'
     with open(filename, 'r') as file:
         lines = file.readlines()
 
@@ -130,7 +125,7 @@ def evaluate(model):
 
     print('elapsed: {} ms'.format(elapsed / (6000 * 2) * 1000))
 
-    with open('data/angles.txt', 'w') as file:
+    with open('data/custom_angles.txt', 'w') as file:
         file.writelines(angles)
 
 
@@ -177,7 +172,7 @@ def visualize(threshold):
     plt.legend(loc='upper right')
     plt.plot([threshold, threshold], [0, 0.05], 'k-', lw=2)
     ensure_folder('images')
-    plt.savefig('images/theta_dist.png')
+    plt.savefig('images/custom_theta_dist.png')
     # plt.show()
 
 
@@ -197,12 +192,12 @@ def accuracy(threshold):
             if angle <= threshold:
                 wrong += 1
 
-    accuracy = 1 - wrong / 6000
+    accuracy = 1 - wrong/138 # 138 is the total number of test pairs
     return accuracy
 
 
 def show_bboxes(folder):
-    with open(lfw_pickle, 'rb') as file:
+    with open(custom_pickle, 'rb') as file:
         data = pickle.load(file)
 
     samples = data['samples']
@@ -238,49 +233,49 @@ def error_analysis(threshold):
     num_fp = len(fp)
     num_fn = len(fn)
 
-    filename = 'data/lfw_test_pair.txt'
+    filename = 'data/custom_test_pair.txt'
     with open(filename, 'r') as file:
         pair_lines = file.readlines()
 
-    for i in range(num_fp):
-        fp_id = fp[i]
-        fp_line = pair_lines[fp_id]
-        tokens = fp_line.split()
-        file0 = tokens[0]
-        copy_file(file0, '{}_fp_0.jpg'.format(i))
-        save_aligned(file0, '{}_fp_0_aligned.jpg'.format(i))
-        file1 = tokens[1]
-        copy_file(file1, '{}_fp_1.jpg'.format(i))
-        save_aligned(file1, '{}_fp_1_aligned.jpg'.format(i))
-
-    for i in range(num_fn):
-        fn_id = fn[i]
-        fn_line = pair_lines[fn_id]
-        tokens = fn_line.split()
-        file0 = tokens[0]
-        copy_file(file0, '{}_fn_0.jpg'.format(i))
-        save_aligned(file0, '{}_fn_0_aligned.jpg'.format(i))
-        file1 = tokens[1]
-        copy_file(file1, '{}_fn_1.jpg'.format(i))
-        save_aligned(file1, '{}_fn_1_aligned.jpg'.format(i))
-
-
-def save_aligned(old_fn, new_fn):
-    old_fn = os.path.join('data/lfw_funneled', old_fn)
-    is_valid, bounding_boxes, landmarks = get_central_face_attributes(old_fn)
-    img = align_face(old_fn, landmarks)
-    new_fn = os.path.join('images', new_fn)
-    cv.imwrite(new_fn, img)
+    # for i in range(num_fp):
+    #     fp_id = fp[i]
+    #     fp_line = pair_lines[fp_id]
+    #     tokens = fp_line.split()
+    #     file0 = tokens[0]
+    #     copy_file(file0, '{}_fp_0.jpg'.format(i))
+    #     save_aligned(file0, '{}_fp_0_aligned.jpg'.format(i))
+    #     file1 = tokens[1]
+    #     copy_file(file1, '{}_fp_1.jpg'.format(i))
+    #     save_aligned(file1, '{}_fp_1_aligned.jpg'.format(i))
+    #
+    # for i in range(num_fn):
+    #     fn_id = fn[i]
+    #     fn_line = pair_lines[fn_id]
+    #     tokens = fn_line.split()
+    #     file0 = tokens[0]
+    #     copy_file(file0, '{}_fn_0.jpg'.format(i))
+    #     save_aligned(file0, '{}_fn_0_aligned.jpg'.format(i))
+    #     file1 = tokens[1]
+    #     copy_file(file1, '{}_fn_1.jpg'.format(i))
+    #     save_aligned(file1, '{}_fn_1_aligned.jpg'.format(i))
 
 
-def copy_file(old, new):
-    old_fn = os.path.join('data/lfw_funneled', old)
-    img = cv.imread(old_fn)
-    bounding_boxes, landmarks = get_all_face_attributes(old_fn)
-    draw_bboxes(img, bounding_boxes, landmarks)
-    cv.resize(img, (224, 224))
-    new_fn = os.path.join('images', new)
-    cv.imwrite(new_fn, img)
+# def save_aligned(old_fn, new_fn):
+#     old_fn = os.path.join('data/lfw_funneled', old_fn)
+#     is_valid, bounding_boxes, landmarks = get_central_face_attributes(old_fn)
+#     img = align_face(old_fn, landmarks)
+#     new_fn = os.path.join('images', new_fn)
+#     cv.imwrite(new_fn, img)
+
+
+# def copy_file(old, new):
+#     old_fn = os.path.join('data/lfw_funneled', old)
+#     img = cv.imread(old_fn)
+#     bounding_boxes, landmarks = get_all_face_attributes(old_fn)
+#     draw_bboxes(img, bounding_boxes, landmarks)
+#     cv.resize(img, (224, 224))
+#     new_fn = os.path.join('images', new)
+#     cv.imwrite(new_fn, img)
 
 
 def get_threshold():
@@ -311,14 +306,11 @@ def get_threshold():
     return min_threshold
 
 
-def lfw_test(model):
-    filename = 'data/lfw-funneled.tgz'
-    if not os.path.isdir('data/lfw_funneled'):
-        print('Extracting {}...'.format(filename))
-        extract(filename)
+def custom_test(model):
+    filename = '/home/ahmadob/dataset/facerecognition_dataset/test_set'
 
     # if not os.path.isfile(lfw_pickle):
-    print('Processing {}...'.format(lfw_pickle))
+    print('Processing {}...'.format(custom_pickle))
     process()
 
     # if not os.path.isfile(angles_file):
@@ -343,10 +335,11 @@ if __name__ == "__main__":
 
     # scripted_model_file = 'pretrained_model/mobilefacenet_scripted.pt'
     # model = torch.jit.load(scripted_model_file)
+    # model.load_state_dict(model.state_dict(), strict=False)
     # model = model.to(device)
     # model.eval()
 
-    acc, threshold = lfw_test(model)
+    acc, threshold = custom_test(model)
 
     print('Visualizing {}...'.format(angles_file))
     visualize(threshold)

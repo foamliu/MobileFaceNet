@@ -40,6 +40,7 @@ final_matching_pair = []
 for k in target_info.keys():
     final_matching_pair.extend(target_info[k]['match_pair'])
 
+
 total_matching_images = len(final_matching_pair)
 print("Total matching images = {}".format(total_matching_images))
 
@@ -55,21 +56,54 @@ keys_combination = list(itertools.combinations(keyss, 2))
 
 # from keys combination we can find out all the possible combination
 # so we can divide the total number of matching pairs we have into equal number of unmatching pair
-# we have total of 41 matching pair in 3 subjects, so unmatching pair can be 14 from each combination giving total of 42 unmatching pairs
+# example : we have total of 41 matching pair in 3 subjects, so unmatching pair can be 14 from each combination giving total of 42 unmatching pairs
 
 unmatching_pair = []
 n = int(round(total_matching_images / len(keys_combination)))
 
 for k1, k2 in keys_combination:
-    unmatching_pair.append(list_combination(random.sample(target_info[k1]['remaining_images'], 5), random.sample(target_info[k2]['remaining_images'], 5)))
+    unmatching_pair.append(list_combination(random.sample(target_info[k1]['remaining_images'], 7), random.sample(target_info[k2]['remaining_images'], 7)))
+# unmatching_pair contains total combination of 7 factorial
+
+unmatching_pairs = []
+for i in unmatching_pair:
+    unmatching_pairs.extend(random.sample(i, n)) # selecting some numbers only from the 7 factorials depending on n
+
 
 final_unmatching_pair = []
-for i in unmatching_pair:
-    final_unmatching_pair.extend(random.sample(i, n))
+for i in unmatching_pairs:
+    for j in i:
+        final_unmatching_pair.append(j)
 
+final_unmatching_pair = random.sample(list(set(final_unmatching_pair)), total_matching_images)
+
+# print(final_unmatching_pair[0])
 print("Total unmatching images = {}".format(len(final_unmatching_pair)))
 
 
+# Saving the meta data information like pair and the corresponding 1 and 0 for matching and not matching
+
+destination_file = 'data/custom_test_pair.txt'
+
+if os.path.exists(destination_file):
+    print("File exist, removing it for now.")
+    os.remove(destination_file)
+    print("File removed!")
+
+print("Saving the file {}".format(destination_file))
+for match, unmatch in zip(final_matching_pair, final_unmatching_pair):
+
+    # unmatch_line = unmatch[0] + " " + unmatch[1] + " " + str(0)
+    # print(unmatch[0])
+    
+    output_file = open(destination_file, 'a+')
+    match_line = match[0] + " " + match[1] + " " + str(1)
+    unmatch_line = unmatch[0] + " " + unmatch[1] + " " + str(0)
+    output_file.write(match_line + "\n")
+    output_file.write(unmatch_line + "\n")
+    output_file.close()
+
+print("File {} saved successfully".format(destination_file))
 
 
 

@@ -7,43 +7,43 @@ The custom dataset is not just face portion so we need to pass through the detec
 """
 
 import os
+import pdb
 import pickle
 
+import cv2
 import cv2 as cv
-import mxnet as mx
-from mxnet import recordio
 from tqdm import tqdm
 
-from config import path_imgidx, path_imgrec, IMG_DIR, pickle_file
-from utils import ensure_folder
+from custom_config import IMG_DIR, pickle_file, custom_folder, image_h, image_w
+from custom_utils import ensure_folder
+from custom_yolodetector import FaceDetector
+
+
 
 if __name__ == "__main__":
+    face_detector = FaceDetector()
     ensure_folder(IMG_DIR)
-    imgrec = recordio.MXIndexedRecordIO(path_imgidx, path_imgrec, 'r')
-    # print(len(imgrec))
+
+    class_folders = [os.path.join(custom_folder, fol) for fol in os.listdir(custom_folder)]
+    print(class_folders)
 
     samples = []
-    class_ids = set()
-
-    # # %% 1 ~ 5179510
 
     try:
-        for i in tqdm(range(1000000)):
-            # print(i)
-            header, s = recordio.unpack(imgrec.read_idx(i + 1))
-            img = mx.image.imdecode(s).asnumpy()
-            # print(img.shape)
-            img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
-            # print(header.label)
-            # print(type(header.label))
-            label = int(header.label)
-            class_ids.add(label)
-            filename = '{}.jpg'.format(i)
-            samples.append({'img': filename, 'label': label})
-            filename = os.path.join(IMG_DIR, filename)
-            cv.imwrite(filename, img)
-            # except KeyboardInterrupt:
-            #     raise
+        i = 0
+        for index, class_dir in enumerate(class_folders):
+            for imgs in tqdm(os.listdir(class_dir)):
+                img_path = os.path.join(class_dir, imgs)
+                # img = cv.imread(img_path)
+                face = face_detector.detect(img_path)
+                if face is not None:
+                    img = cv2.resize(face, (image_w, image_h))
+                    filename = '{}.jpg'.format(i)
+                    destination_path = os.path.join(IMG_DIR, filename)
+                    cv.imwrite(destination_path, img)
+                    samples.append({'img': filename, 'label': index})
+                    i += 1
+
     except Exception as err:
         print(err)
 
@@ -52,6 +52,3 @@ if __name__ == "__main__":
 
     print('num_samples: ' + str(len(samples)))
 
-    class_ids = list(class_ids)
-    print(len(class_ids))
-    print(max(class_ids))
