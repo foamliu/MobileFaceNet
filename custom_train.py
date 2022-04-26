@@ -1,7 +1,5 @@
 """
-This script will first load the pre-trained model which was trained on faces_emore and tested on LFW
-
-Then, will train the model on our custom dataset
+Will train the model on our custom dataset
 
 """
 import numpy as np
@@ -72,7 +70,7 @@ def train_net(args):
     train_dataset = CustomFaceDataset('train')
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4)
 
-    scheduler = MultiStepLR(optimizer, milestones=[5, 10, 30, 50, 80], gamma=0.1) # milestone = [5, 10, 15, 20] default gamma=0.1
+    scheduler = MultiStepLR(optimizer, milestones=[5, 10, 15, 25], gamma=0.1) # milestone = [5, 10, 15, 20] default gamma=0.1
 
     # Epochs
     for epoch in range(start_epoch, args.end_epoch):
@@ -93,13 +91,13 @@ def train_net(args):
         writer.add_scalar('model/learning_rate', lr, epoch)
 
         # One epoch's validation
-        lfw_acc, threshold = custom_test(model)
-        writer.add_scalar('model/custom_acc', lfw_acc, epoch)
+        custom_acc, threshold = custom_test(model)
+        writer.add_scalar('model/custom_acc', custom_acc, epoch)
         writer.add_scalar('model/threshold', threshold, epoch)
 
         # Check if there was an improvement
-        is_best = lfw_acc > best_acc
-        best_acc = max(lfw_acc, best_acc)
+        is_best = custom_acc > best_acc
+        best_acc = max(custom_acc, best_acc)
         if not is_best:
             epochs_since_improvement += 1
             print("\nEpochs since last improvement: %d\n" % (epochs_since_improvement,))

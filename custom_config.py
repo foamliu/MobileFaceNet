@@ -16,10 +16,11 @@ print_freq = 100  # print training/validation stats  every __ batches
 checkpoint = None  # path to checkpoint, None if none
 
 # Data parameters
-num_classes = 16
-num_samples = 924
+num_classes = 21
+num_samples = 1119
 DATA_DIR = 'data'
-custom_folder = '/home/ahmadob/dataset/facerecognition_dataset/train_jpeg_set'
+# custom_folder = '/home/ahmadob/dataset/facerecognition_dataset/overall_jpeg_data' # for processing overall_dataset
+custom_folder = '/home/ahmadob/dataset/facerecognition_dataset/train_set'
 IMG_DIR = 'data/images_custom'
 pickle_file = 'data/custom_faces_112x112.pickle'
 pretrained_model_path = "pretrained_model/mobilefacenet_scripted.pt"

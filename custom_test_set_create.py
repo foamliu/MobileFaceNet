@@ -1,3 +1,6 @@
+"""
+This code goes through the test set directory and then makes the matching pair and non-matching pair and saves in the file for evaluation
+"""
 import os
 import pdb
 import pprint

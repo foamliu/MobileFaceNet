@@ -40,7 +40,7 @@ class FaceDetector:
     def detect_path(self, image_path):
         # Load model
         img_size = 256
-        conf_thres = 0.4
+        conf_thres = 0.5
         iou_thres = 0.5
 
         orgimg = cv2.imread(image_path, 1)  # BGR

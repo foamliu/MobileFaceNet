@@ -18,7 +18,7 @@ random.seed(5)
 
 
 def data_splitter(overall_images_list):
-    train_list, test_list = train_test_split(overall_images_list, test_size=0.1, random_state=42, shuffle=True)
+    train_list, test_list = train_test_split(overall_images_list, test_size=0.10, random_state=42, shuffle=True)
     return train_list, test_list
 
 def save_data(target_info, kind='train_list'):
@@ -104,6 +104,7 @@ def save_text_file(matching_pairs, unmatching_pairs):
     unmatch_list_string = make_string(unmatching_pairs, kind='unmatch')
 
     final_list = match_list_string + unmatch_list_string
+    print("Total length of test pairs = {}".format(len(final_list)))
     random.shuffle(final_list)
     for i in final_list:
         output_file = open(destination_file, 'a+')
@@ -133,8 +134,10 @@ if __name__ =="__main__":
     save_data(target_info, kind='test_list')  # saving the test images in test_set folder
 
     target_info = change_path_for_test_set(target_info) # this is required because we need to create the test_path
-    matching_pairs = generate_matching_pairs(target_info)
-    unmatching_pairs = generate_unmatching_pairs(target_info)
+    matching_pairs = list(set(generate_matching_pairs(target_info)))
+    print("Total matching pairs = {}".format(len(matching_pairs)))
+    unmatching_pairs = list(set(generate_unmatching_pairs(target_info)))
+    print("Total unmatching pairs = {}".format(len(unmatching_pairs)))
 
     save_text_file(matching_pairs, unmatching_pairs)
 

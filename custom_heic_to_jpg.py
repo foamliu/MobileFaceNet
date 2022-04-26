@@ -1,6 +1,7 @@
 import os
 from PIL import Image, ExifTags
 import pyheif
+from tqdm import tqdm
 
 def heic_to_jpg(path):
     if path.endswith(".HEIC"):
@@ -13,8 +14,10 @@ def heic_to_jpg(path):
             heif_file.mode,
             heif_file.stride,
         )
+
     else:
         image = Image.open(path)
+
         try:
             # Grab orientation value.
             image_exif = image._getexif()
@@ -28,27 +31,28 @@ def heic_to_jpg(path):
                 image = image.rotate(90)
         except:
             pass
+        image = image.convert('RGB')
     return image
 
 
 
 if __name__=='__main__':
     root_dir = "/home/ahmadob/dataset/facerecognition_dataset/"
-    source_dir = os.path.join(root_dir, 'train_set')
-    destination_dir = os.path.join(root_dir, 'train_jpeg_set')
+    source_dir = os.path.join(root_dir, 'overall_data')
+    destination_dir = os.path.join(root_dir, 'overall_jpeg_data')
     print(os.listdir(source_dir))
 
 
-    for src_dir in os.listdir(source_dir):
+    for src_dir in tqdm(os.listdir(source_dir)):
         src_dir_path = os.path.join(source_dir, src_dir)
         dst_dir_path = os.path.join(destination_dir, src_dir)
         os.makedirs(dst_dir_path, exist_ok=True)
 
-        print("Processing {}".format(src_dir_path))
+        # print("Processing {}".format(src_dir_path))
         for ind, src_img in enumerate(os.listdir(src_dir_path)):
             src_img_path = os.path.join(src_dir_path, src_img)
 
             img = heic_to_jpg(src_img_path)
             dst_img_path = os.path.join(dst_dir_path, str(ind)+".jpg")
             img.save(dst_img_path)
-        print("Processed and saved at {}".format(dst_dir_path))
+        # print("Processed and saved at {}".format(dst_dir_path))

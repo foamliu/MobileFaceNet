@@ -1,36 +1,36 @@
 import math
 import os
-import pdb
 import pickle
+import tarfile
 import time
 
 import cv2 as cv
 import numpy as np
 import scipy.stats
 import torch
-from torch import nn
 from PIL import Image
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-from custom_config import device, image_w, image_h
+from config import device
 from data_gen import data_transforms
-from custom_utils import draw_bboxes, ensure_folder, get_face_yolo
-from mobilefacenet import MobileFaceNet, ArcMarginModel
-from facenet_utils import parse_args
-
-global args
-args = parse_args()
-
+from facenet_utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder
 
 angles_file = 'data/custom_angles.txt'
 custom_pickle = 'data/custom_test.pkl'
 transformer = data_transforms['val']
 
+
+def extract(filename):
+    with tarfile.open(filename, 'r') as tar:
+        tar.extractall('data')
+
+
 def process():
     testset_dir = "/home/ahmadob/dataset/facerecognition_dataset/test_set"
     subjects = [d for d in os.listdir(testset_dir) if os.path.isdir(os.path.join(testset_dir, d))]
-    assert (len(subjects) == 21), "Number of subjects is: {}!".format(len(subjects))
+    assert (len(subjects) == 5), "Number of subjects is: {}!".format(len(subjects))
+
 
     print('Collecting file names...')
     file_names = []
@@ -43,19 +43,20 @@ def process():
             filename = os.path.join(folder, file)
             file_names.append({'filename': filename, 'class_id': i, 'subject': sub})
 
+    # assert (len(file_names) == 13233), "Number of files is: {}!".format(len(file_names))
 
-    print('Detecting faces...')
+    print('Aligning faces...')
     samples = []
     for item in tqdm(file_names):
         filename = item['filename']
         class_id = item['class_id']
         sub = item['subject']
-        is_valid, face = get_face_yolo(filename)
+        is_valid, bounding_boxes, landmarks = get_central_face_attributes(filename)
 
         if is_valid:
-            face = cv.resize(face, (image_w, image_h), interpolation=cv.INTER_LANCZOS4)
             samples.append(
-                {'class_id': class_id, 'subject': sub, 'full_path': filename, 'face': face})
+                {'class_id': class_id, 'subject': sub, 'full_path': filename, 'bounding_boxes': bounding_boxes,
+                 'landmarks': landmarks})
 
     with open(custom_pickle, 'wb') as file:
         save = {
@@ -65,11 +66,12 @@ def process():
 
 
 def get_image(samples, file):
-    filtered = [sample for sample in samples if file in sample['full_path']]
+    filtered = [sample for sample in samples if file in sample['full_path'].replace('\\', '/')]
     assert (len(filtered) == 1), 'len(filtered): {} file:{}'.format(len(filtered), file)
     sample = filtered[0]
-    img = sample['face']  # BGR
-    # print(img)
+    full_path = sample['full_path']
+    landmarks = sample['landmarks']
+    img = align_face(full_path, landmarks)  # BGR
     return img
 
 
@@ -88,7 +90,6 @@ def get_feature(model, samples, file):
     img = get_image(samples, file)
     imgs[0] = transform(img.copy(), False)
     imgs[1] = transform(img.copy(), True)
-    # pdb.set_trace()
     with torch.no_grad():
         output = model(imgs)
     feature_0 = output[0].cpu().numpy()
@@ -180,7 +181,7 @@ def visualize(threshold):
     plt.legend(loc='upper right')
     plt.plot([threshold, threshold], [0, 0.05], 'k-', lw=2)
     ensure_folder('images')
-    plt.savefig('images/custom_theta_dist.png')
+    plt.savefig('images/theta_dist.png')
     # plt.show()
 
 
@@ -200,7 +201,7 @@ def accuracy(threshold):
             if angle <= threshold:
                 wrong += 1
 
-    accuracy = 1 - wrong/782 # 758 is the total number of test pairs in old set
+    accuracy = 1 - wrong / 138
     return accuracy
 
 
@@ -250,38 +251,41 @@ def error_analysis(threshold):
         fp_line = pair_lines[fp_id]
         tokens = fp_line.split()
         file0 = tokens[0]
-        # copy_file(file0, '{}_fp_0.jpg'.format(i))
-        save_aligned(file0, '{}_fp_0_cropped.jpg'.format(i))
+        copy_file(file0, '{}_fp_0.jpg'.format(i))
+        save_aligned(file0, '{}_fp_0_aligned.jpg'.format(i))
         file1 = tokens[1]
-        # copy_file(file1, '{}_fp_1.jpg'.format(i))
-        save_aligned(file1, '{}_fp_1_cropped.jpg'.format(i))
+        copy_file(file1, '{}_fp_1.jpg'.format(i))
+        save_aligned(file1, '{}_fp_1_aligned.jpg'.format(i))
 
     for i in range(num_fn):
         fn_id = fn[i]
         fn_line = pair_lines[fn_id]
         tokens = fn_line.split()
         file0 = tokens[0]
-        # copy_file(file0, '{}_fn_0.jpg'.format(i))
-        save_aligned(file0, '{}_fn_0_cropped.jpg'.format(i))
+        copy_file(file0, '{}_fn_0.jpg'.format(i))
+        save_aligned(file0, '{}_fn_0_aligned.jpg'.format(i))
         file1 = tokens[1]
-        # copy_file(file1, '{}_fn_1.jpg'.format(i))
-        save_aligned(file1, '{}_fn_1_cropped.jpg'.format(i))
+        copy_file(file1, '{}_fn_1.jpg'.format(i))
+        save_aligned(file1, '{}_fn_1_aligned.jpg'.format(i))
 
 
 def save_aligned(old_fn, new_fn):
     # old_fn = os.path.join( "/home/ahmadob/dataset/facerecognition_dataset/test_set", old_fn)
-    is_valid, face = get_face_yolo(old_fn)
-    img = face
+    is_valid, bounding_boxes, landmarks = get_central_face_attributes(old_fn)
+    img = align_face(old_fn, landmarks)
     new_fn = os.path.join('images', new_fn)
     cv.imwrite(new_fn, img)
 
 
 def copy_file(old_fn, new):
     # old_fn = os.path.join("/home/ahmadob/dataset/facerecognition_dataset/test_set", old)
-    is_valid, face = get_face_yolo(old_fn)
-    face = cv.resize(face, (480, 480))
+    img = cv.imread(old_fn)
+    bounding_boxes, landmarks = get_all_face_attributes(old_fn)
+    draw_bboxes(img, bounding_boxes, landmarks)
+    cv.resize(img, (224, 224))
     new_fn = os.path.join('images', new)
-    cv.imwrite(new_fn, face)
+    cv.imwrite(new_fn, img)
+
 
 def get_threshold():
     with open(angles_file, 'r') as file:
@@ -295,7 +299,7 @@ def get_threshold():
         type = int(tokens[1])
         data.append({'angle': angle, 'type': type})
 
-    min_error = 782
+    min_error = 138
     min_threshold = 0
 
     for d in data:
@@ -323,11 +327,11 @@ def custom_test(model):
     evaluate(model)
 
     print('Calculating threshold...')
-    # threshold = 62 with finetuned 89 acc, 52 with finetune on lfw acc 71
+    # threshold = 70.36
     thres = get_threshold()
     print('Calculating accuracy...')
     acc = accuracy(thres)
-    print('Accuracy: {}%, threshold: {}'.format(acc*100, thres))
+    print('Accuracy: {}%, threshold: {}'.format(acc * 100, thres))
     return acc, thres
 
 
@@ -338,10 +342,11 @@ if __name__ == "__main__":
     model = model.to(device)
     model.eval()
 
-    # scripted_model_file = 'pretrained_model/mobilefacenet_scripted.pt' # does not work, issue running mean and variance problem
+    # scripted_model_file = 'pretrained_model/mobilefacenet_scripted.pt'
     # model = torch.jit.load(scripted_model_file)
     # model = model.to(device)
     # model.eval()
+
     acc, threshold = custom_test(model)
 
     print('Visualizing {}...'.format(angles_file))
