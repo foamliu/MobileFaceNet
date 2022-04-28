@@ -141,7 +141,7 @@ if __name__ == "__main__":
     model_dir = "pretrained_custom_0.1_testset_lr_0.001_epoch70_acc_93.09"
     model_path = os.path.join(trained_model_dir, model_dir, "BEST_checkpoint.tar")
     root = "/home/ahmadob/dataset/facerecognition_dataset/"
-    kind = 'test_set'
+    kind = 'train_set'
     dir = os.path.join(root, kind)
 
     if kind == "train_set":
