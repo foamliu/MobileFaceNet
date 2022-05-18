@@ -138,7 +138,7 @@ def save_faces(kind, images_path, faces):
 
 if __name__ == "__main__":
     trained_model_dir = "/home/ahmadob/Documents/adarsh/github/MobileFaceNet/trained_models/"
-    model_dir = "pretrained_custom_0.1_testset_lr_0.001_epoch70_acc_93.09"
+    model_dir = "pretrained_custom_0.1_testset_lr_0.005_epoch30_acc_97.05_lanczos"
     model_path = os.path.join(trained_model_dir, model_dir, "BEST_checkpoint.tar")
     root = "/home/ahmadob/dataset/facerecognition_dataset/"
     kind = 'train_set'
