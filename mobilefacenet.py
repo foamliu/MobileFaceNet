@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn import Parameter
 
-from config import device, num_classes, emb_size
+from custom_config import device, num_classes, emb_size
 
 
 def _make_divisible(v, divisor, min_value=None):

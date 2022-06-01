@@ -7,7 +7,7 @@ from mxnet import recordio
 from tqdm import tqdm
 
 from config import path_imgidx, path_imgrec, IMG_DIR, pickle_file
-from utils import ensure_folder
+from facenet_utils import ensure_folder
 
 if __name__ == "__main__":
     ensure_folder(IMG_DIR)
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # # %% 1 ~ 5179510
 
     try:
-        for i in tqdm(range(10000000)):
+        for i in tqdm(range(200000)):
             # print(i)
             header, s = recordio.unpack(imgrec.read_idx(i + 1))
             img = mx.image.imdecode(s).asnumpy()

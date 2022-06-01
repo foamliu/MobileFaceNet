@@ -23,6 +23,6 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(filename))
     print('elapsed {} sec'.format(time.time() - start))
 
-    scripted_model_file = 'mobilefacenet_scripted.pt'
+    scripted_model_file = 'mobilefacenet_finetuned_scripted.pt'
     print('saving {}...'.format(scripted_model_file))
     torch.jit.save(torch.jit.script(model), scripted_model_file)

@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from config import device
 from data_gen import data_transforms
-from utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder
+from facenet_utils import align_face, get_central_face_attributes, get_all_face_attributes, draw_bboxes, ensure_folder
 
 angles_file = 'data/angles.txt'
 lfw_pickle = 'data/lfw_funneled.pkl'
@@ -335,16 +335,16 @@ def lfw_test(model):
 
 
 if __name__ == "__main__":
-    # checkpoint = 'BEST_checkpoint.tar'
-    # checkpoint = torch.load(checkpoint)
-    # model = checkpoint['model'].module
-    # model = model.to(device)
-    # model.eval()
-
-    scripted_model_file = 'mobilefacenet_scripted.pt'
-    model = torch.jit.load(scripted_model_file)
+    checkpoint = 'BEST_checkpoint.tar'
+    checkpoint = torch.load(checkpoint)
+    model = checkpoint['model'].module
     model = model.to(device)
     model.eval()
+
+    # scripted_model_file = 'pretrained_model/mobilefacenet_scripted.pt'
+    # model = torch.jit.load(scripted_model_file)
+    # model = model.to(device)
+    # model.eval()
 
     acc, threshold = lfw_test(model)
 
