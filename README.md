@@ -5,8 +5,6 @@
 PyTorch implementation of MobileFaceNets: Efficient CNNs for Accurate Real-Time Face Verification on Mobile Devices.
 [paper](https://arxiv.org/abs/1804.07573).
 
-note - i forked this repo to create a pytorch conversion script to obtain a onnx model. posted in /weights :)
-
 ## Performance
 
 |Accuracy|LFW|MegaFace|Download|
