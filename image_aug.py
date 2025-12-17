@@ -1,6 +1,6 @@
 import cv2 as cv
 
-from utils import image_aug, get_central_face_attributes, align_face
+from facenet_utils import image_aug, get_central_face_attributes, align_face
 
 if __name__ == "__main__":
     filename = 'data/lfw_funneled/Aaron_Eckhart/Aaron_Eckhart_0001.jpg'

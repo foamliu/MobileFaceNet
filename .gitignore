@@ -4,3 +4,6 @@ data/CASIA-WebFace
 data/lfw_funneled
 __pycache__/
 *.tar
+data/
+.ipynb_checkpoints
+trained_models
